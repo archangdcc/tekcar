@@ -36,3 +36,4 @@
 	))
 
 (interp-tests "integers and arithmetic" r0-passes interp-scheme "r0" (range 1 4))
+(display "tests passed!") (newline)
