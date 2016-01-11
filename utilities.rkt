@@ -197,7 +197,7 @@
   (for ([test-name (map (lambda (n) (format "~a_~a" test-family n)) 
 			test-nums)])
        (compiler (format "tests/~a.rkt" test-name))
-       (if (system (format "gcc -g runtime.o tests/~a.s" test-name))
+       (if (system (format "gcc -g -std=c99 runtime.o tests/~a.s" test-name))
 	   (void) (exit))
        (let* ([input (if (file-exists? (format "tests/~a.in" test-name))
 			 (format " < tests/~a.in" test-name)
