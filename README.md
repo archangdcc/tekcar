@@ -24,11 +24,11 @@ which will produce the executable program named a.out.
 
 There is an example "compiler" in the file `r0-partial-eval.rkt`.  That
 file defines two passes that translate R_0 programs to R_0 programs
-and tests them using the interp-tests function from utilities.rkt. It
+and tests them using the `interp-tests` function from `utilities.rkt`. It
 tests the passes on the three example programs in the tests
 subdirectory. You may find it amusing (I did!) to insert bugs in the
-compiler and see the errors reported. Note that interp-tests does not
-test the final output assembly code; you need to use compiler-tests
-for that purpose. The usage of compiler-tests is quite similar to
-interp-tests.
+compiler and see the errors reported. Note that `interp-tests` does not
+test the final output assembly code; you need to use `compiler-tests`
+for that purpose. The usage of `compiler-tests` is quite similar to
+`interp-tests`.
 
