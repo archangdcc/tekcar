@@ -10,7 +10,9 @@
     [(? fixnum?) e]
     [`(read) `(read)]
     [`(- ,e1) `(- ,(flipper e1))]
-    [`(+ ,e1 ,e2) `(+ ,(flipper e2) ,(flipper e1))]))
+    [`(+ ,e1 ,e2) `(+ ,(flipper e2) ,(flipper e1))]
+    [`(program ,e) `(program ,(flipper e))]
+    ))
 
 
 ;; Next we have the partial evaluation pass described in the book.
@@ -27,7 +29,9 @@
     [(? fixnum?) e]
     [`(read) `(read)]
     [`(- ,e1) (pe-neg (pe-arith e1))]
-    [`(+ ,e1 ,e2) (pe-add (pe-arith e1) (pe-arith e2))]))   
+    [`(+ ,e1 ,e2) (pe-add (pe-arith e1) (pe-arith e2))]
+    [`(program ,e) `(program ,(pe-arith e))]
+    ))   
 
 
 (define r0-passes
