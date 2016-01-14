@@ -2,7 +2,7 @@
 (require racket/pretty)
 (provide debug map2 label-name lookup  make-dispatcher assert
          read-fixnum read-program
-	 compile compile-file check-passes interp-tests compiler-tests fix while 
+	 compile compile-file check-passes interp-tests compiler-tests fix while
 	 make-graph add-edge adjacent
 	 general-registers registers-for-alloc caller-save callee-save
 	 arg-registers register->color registers align)
@@ -47,10 +47,10 @@
 ;; The lookup function takes a key and an association list
 ;; and returns the corresponding value. It triggers an
 ;; error if the key is not present in the association list.
-;;   
+;;
 ;; The association list may be constructed of either
 ;; immutable or mutable pairs.
-;; 
+;;
 (define lookup
   (lambda (x ls)
     (cond [(null? ls)
@@ -59,7 +59,7 @@
 	   (cdr (car ls))]
 	  [(and (mpair? (car ls)) (eq? x (mcar (car ls))))
 	   (mcdr (car ls))]
-	  [else 
+	  [else
 	   (lookup x (cdr ls))])))
 
 (define (read-fixnum)
@@ -96,7 +96,7 @@
 ;; runs the passes and the appropriate interpreters to test the
 ;; correctness of all the passes. This function assumes there is a "tests"
 ;; subdirectory and a file in that directory whose name is the test name
-;; followed by ".scm". Also, there should be a matching file with the
+;; followed by ".rkt". Also, there should be a matching file with the
 ;; ending ".in" that provides the input for the Scheme program.
 ;;
 ;; The description of the passes is a list with one entry per pass.
@@ -133,7 +133,7 @@
                                ;; as this test bing current-input-port to that
                                ;; file's input port so that the interpreters
                                ;; can use it as test input.
-			       (if (file-exists? input-file-name) 
+			       (if (file-exists? input-file-name)
                                    (with-input-from-file input-file-name
                                      (lambda () (interp new-p)))
 				   (interp new-p))])
@@ -157,9 +157,9 @@
 
 ;; The compile-file function takes a description of the compiler
 ;; passes (see the comment for check-passes) and returns a function
-;; that, given a program file name (a string ending in ".scm"),
+;; that, given a program file name (a string ending in ".rkt"),
 ;; applies all of the passes and writes the output to a file whose
-;; name is the same as the proram file name but with ".scm" replaced
+;; name is the same as the proram file name but with ".rkt" replaced
 ;; with ".s".
 (define (compile-file passes)
   (lambda (prog-file-name)
@@ -189,18 +189,18 @@
 ;; a description of the passes (see the comment for check-passes)
 ;; a test family name (a string), and a list of test numbers,
 ;; and runs the compiler passes and the interpreters to check
-;; whether the passes correct. 
-;; 
+;; whether the passes correct.
+;;
 ;; This function assumes that the subdirectory "tests" has a bunch of
 ;; Scheme programs whose names all start with the family name,
 ;; followed by an underscore and then the test number, ending in
-;; ".scm". Also, for each Scheme program there is a file with the
+;; ".rkt". Also, for each Scheme program there is a file with the
 ;; same number except that it ends with ".in" that provides the
 ;; input for the Scheme program.
 
 (define (interp-tests name passes initial-interp test-family test-nums)
   (define checker (check-passes name passes initial-interp))
-  (for ([test-name (map (lambda (n) (format "~a_~a" test-family n)) 
+  (for ([test-name (map (lambda (n) (format "~a_~a" test-family n))
 			test-nums)])
        (checker test-name)
        ))
@@ -214,7 +214,7 @@
 
 (define (compiler-tests name passes test-family test-nums)
   (define compiler (compile-file passes))
-  (for ([test-name (map (lambda (n) (format "~a_~a" test-family n)) 
+  (for ([test-name (map (lambda (n) (format "~a_~a" test-family n))
 			test-nums)])
        (compiler (format "tests/~a.rkt" test-name))
        (if (system (format "gcc -g -std=c99 runtime.o tests/~a.s" test-name))
@@ -226,7 +226,7 @@
 	      [result (string->number (read-line (car progout)))])
 	 (if (eq? result 42)
 	     (begin (display test-name)(display " ")(flush-output))
-	     (error (format "test ~a failed, output: ~a" 
+	     (error (format "test ~a failed, output: ~a"
 			    test-name result))))
        ))
 
@@ -252,10 +252,10 @@
 
 ;; there are 13 general registers:
 (define general-registers (vector 'rbx 'rcx 'rdx 'rsi 'rdi
-    				  'r8 'r9 'r10 'r11 'r12 
+    				  'r8 'r9 'r10 'r11 'r12
 				  'r13 'r14 'r15))
 
-;; registers-for-alloc should always inlcude the arg-registers. -Jeremy 
+;; registers-for-alloc should always inlcude the arg-registers. -Jeremy
 (define registers-for-alloc general-registers)
 
 
