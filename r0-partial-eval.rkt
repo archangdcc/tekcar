@@ -3,6 +3,9 @@
 (require "interp.rkt")
 (require "utilities.rkt")
 
+;; This exports r0-passes, defined below, to users of this file.
+(provide r0-passes)
+
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
 (define (flipper e)
@@ -33,11 +36,13 @@
     [`(program ,e) `(program ,(pe-arith e))]
     ))   
 
-
+;; Define the passes to be used by interp-tests and the grader
+;; Note that your compiler file (or whatever file provides your passes)
+;; should be named "compiler.rkt"
 (define r0-passes
-  (list `("flipper" ,flipper ,interp-scheme)
-	`("partial evaluator" ,pe-arith ,interp-scheme)
-	))
+  (` ("flipper" ,flipper ,interp-scheme)
+     ("partial evaluator" ,pe-arith ,interp-scheme)
+     ))
 
 (interp-tests "integers and arithmetic" r0-passes interp-scheme "r0" (range 1 5))
 (display "tests passed!") (newline)
