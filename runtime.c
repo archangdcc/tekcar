@@ -12,3 +12,11 @@ void print_int(long x) {
   printf("%ld", x);
 }
 
+
+void print_bool(int x) {
+  if (x) 
+    printf("#t");
+  else printf("#f");
+}
+
+    
