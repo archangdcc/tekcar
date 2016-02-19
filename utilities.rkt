@@ -16,22 +16,18 @@
 ;; The easiest way to increment it is passing the -d option
 ;; to run-tests.rkt
 ;; 0 none 
-;; 1 trace passes in run-test
-;; 2 debug macros
-;; 3 verbose debugging
-;; 4 (vomit) absolutely everything
+;; 1 trace passes in run-test (-d)
+;; 2 debug macros (-dd)
+;; 3 verbose debugging (-ddd)
+;; 4 (vomit) absolutely everything (-dddd)
 ;; The higher the setting the more information is reported.
-;; If you want the same functionality as previous incarnation
-;; of utilities then uncomment the line after this definition
-;; and change the number there.
 (define debug-level
   (make-parameter
-   0 
+   0    ;; If you have to hard code me change 0 to 1-4
    (lambda (d)
      (unless (exact-nonnegative-integer? d) 
        (error 'debug-state "expected nonnegative-integer in ~a" d))
      d)))
-;; (debug-level 2)
 
 ;; Check to see if debug state is at least some level
 (define (at-debug-level n)
@@ -72,14 +68,6 @@
          #`(when (at-debug-level level)
              #,(syntax/loc stx
                  (print-label-and-values label value ...)))]))))
-
-;; Print out debugging info in a somewhat organized manner
-;; (debug "foo" (car '(1 2)) 'foo) should print
-;; foo @ utilities.rkt:77
-;; (car '(1 2)):
-;; 1
-;; 'foo:
-;; foo
 (define-debug-level trace 1)
 (define-debug-level debug 2)
 (define-debug-level verbose 3)
