@@ -1,0 +1,8 @@
+#lang racket
+
+(require "utilities.rkt")
+(require "interp.rkt")
+(require "compiler.rkt")
+
+(interp-tests "integers and arithmetic" r0-passes interp-scheme "r0" (range 1 5))
+(display "tests passed!") (newline)
