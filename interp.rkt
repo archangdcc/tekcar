@@ -533,8 +533,12 @@
                         (exact-nonnegative-integer? ((interp-C env) size)))
              (error 'interp-C "invalid argument(s) to collect in ~a" ast)) 
            env]
-          ;; allocate a vector of length l and type t that is initialized.
-          [`(allocate ,l) (build-vector l (lambda a uninitialized))]
+          ;; allocate a vector of length l that is uninitialized.
+          ;; The t is going away because we are adding type annotations everywhere
+          ;; TODO once we get pass the current assignment (functions) remove
+          ;; allowing an optional type argument. - Andre
+          [`(allocate ,l . ,(or (list _) (list)))
+           (build-vector l (lambda a uninitialized))]
           ;; Analysis information making introduce rootstack easier
           [`(call-live-roots (,xs ...) ,ss ...)
            (for ([x (in-list xs)])
