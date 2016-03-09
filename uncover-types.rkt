@@ -27,18 +27,10 @@
 ;; the original locals form can be restored by taking the car of all
 ;; pairs in the association list.
 
-;; New!!!!
-
-;; Programs with defines return multiple environments. One for each body
-;; of a define. Plus one that includes the top level defines themselves.
-;; The environments for each of the bodies includes only locals and
-;; not parameters. It should be safe to ignore the global environment
-;; of the top level defines because this contains only function types
-;; and we are currently only interested in checking for vectors as roots.
-
 ;; Here is a minimal example of its use.
 (module+ test
   (require "utilities.rkt")
+  (require rackunit)
   
   (define test-prog1
     '(program (foo bar baz bam)
@@ -50,9 +42,9 @@
               (assign bam (vector-ref baz 0))
               (return bam)))
 
-  (lookup 'foo (uncover-types test-prog1)) ;; => 'Integer
-  (lookup 'baz (uncover-types test-prog1)) ;; => '(Vector Integer)
-  (lookup 'bam (uncover-types test-prog1)) ;; => 'Integer
+  (check-equal? (lookup 'foo (uncover-types test-prog1)) '(Vector Integer))
+  (check-equal? (lookup 'baz (uncover-types test-prog1)) '(Vector Integer))
+  (check-equal? (lookup 'bam (uncover-types test-prog1)) 'Integer)
 
   (define test-prog2
     '(program (v.1 f.1 r.1)
@@ -66,16 +58,20 @@
               (assign f.1 (vector-ref v.1 0))
               (assign r.1 (app f.1 40))
               (return r.1)))
-
+  
+  (define test-prog2-env (uncover-types test-prog2))
   (match-define `(,global-env (,foo-local-env) ,prog-local-env)
-    (uncover-types test-prog2))
+    test-prog2-env)
 
-  (lookup 'foo global-env)     ;; => '(Integer -> Integer)
-  (lookup 'r.1 prog-local-env) ;; => 'Integer
-  (lookup 'r.2 foo-local-env)  ;; => 'Integer
+  (check-equal? (lookup 'foo global-env) '(Integer -> Integer))
+  (check-equal? (lookup 'r.1 prog-local-env) 'Integer)
+  (check-equal? (lookup 'r.2 foo-local-env)  'Integer) 
+
+  ;; The order of keys should be deterministic for debuging purposes
+  (for ([n (in-range 0 1000)])
+    (check-equal? test-prog2-env (uncover-types test-prog2)))
+  
   )
-
-
 
 ;; uncover-types infers the type environment containing all variables in prog.
 ;; This code assumes that variables have explicitly one type, but
@@ -84,6 +80,8 @@
 ;; with a message about the type conflict.
 ;; uncover-types : prog -> (listof (pairof id type))
 (define (uncover-types prog)
+  (define (order-deterministically a-list)
+    (sort a-list symbol<? #:key car))
   (match prog
     [`(program (,xs ...) (type ,ty) (defines ,ds ...) ,ss ...)
      ;; first collect all the defines into a flat global environment
@@ -94,9 +92,14 @@
                        [else (error 'uncover-type "unmatched ~a" d)]))]
             ;; Then proccess each define
             [l-env* (for/list ([d ds])
-                      (hash->list (uncover-types-define d g-env)))]
+                      (order-deterministically
+                       (hash->list (uncover-types-define d g-env))))]
             [l-env ((uncover-types-seq (hash) g-env) ss)])
-        (list (hash->list g-env) l-env* (hash->list l-env)))]
+       (list (order-deterministically
+              (hash->list g-env))
+             l-env*
+             (order-deterministically
+              (hash->list l-env))))]
     [`(program (,xs ...) (type ,ty) . ,ss)
      (let ([env ((uncover-types-seq (hash) 'no-global-env) ss)])
        (for ([x (in-list xs)])
@@ -105,7 +108,8 @@
            (hash-ref env x err)))
        ;; Feel free to remove this if you prefer working
        ;; with hashtable instead.
-       (hash->list env))]
+       (order-deterministically
+        (hash->list env)))]
     [else (error 'uncover-type "unmatched ~a" prog)]))
 
 ;; Return the local environment for a define
