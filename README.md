@@ -1,7 +1,7 @@
 # p423-public-code
 Utility code, test suites, etc. for the compiler course.
 
-This code is suppose to be described in the Appendix of the book.
+This code will be described in the Appendix of the book.
 
 The `runtime.c` file needs to be compiled and linked with the assembly
 code that your compiler produces. To compile `runtime.c`, do the
@@ -22,7 +22,7 @@ an executable program, you can then do
 ```
 which will produce the executable program named a.out.
 
-There is an example "compiler" in the file `r0-partial-eval.rkt`.  That
+There is an example "compiler" in the file `compiler.rkt`.  That
 file defines two passes that translate R_0 programs to R_0 programs
 and tests them using the `interp-tests` function from `utilities.rkt`. It
 tests the passes on the three example programs in the tests
