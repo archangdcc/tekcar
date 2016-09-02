@@ -2,7 +2,7 @@
 (require racket/pretty)
 (require (for-syntax racket))
 (provide debug-level debug verbose vomit
-         map2 b2i i2b
+         map2 map3 b2i i2b
          fix while 
          label-name lookup  make-dispatcher assert
          read-fixnum read-program 
@@ -125,6 +125,15 @@
          (let-values ([(x1 x2) (f (car ls))]
                       [(ls1 ls2) (map2 f (cdr ls))])
            (values (cons x1 ls1) (cons x2 ls2)))]))
+
+(define (map3 f ls)
+  (cond [(null? ls)
+         (values '() '() '())]
+        [else
+         (let-values ([(x1 x2 x3) (f (car ls))]
+                      [(ls1 ls2 ls3) (map3 f (cdr ls))])
+           (values (cons x1 ls1) (cons x2 ls2) (cons x3 ls3)))]))
+
 
 ;; label-name prepends an underscore to a label (symbol or string)
 ;; if the current system is Mac OS and leaves it alone otherwise.
