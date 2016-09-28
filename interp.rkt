@@ -176,7 +176,7 @@
 
     (define/override (primitives)
       (set-union (super primitives) 
-		 (set 'eq? 'and 'or 'not)))
+		 (set 'eq? 'and 'or 'not '< '<= '> '>=)))
 
     (define/override (interp-op op)
       (match op
