@@ -71,9 +71,9 @@
 	  (cond [(null? ss)
 		 env]
 		[else
-		 (loop ((interp-C env) (car ss)) 
+		 (loop ((interp-C env) (car ss))
 		       (cdr ss))]))))
-	
+
     (define/public (interp-C env)
       (lambda (ast)
         (vomit "R0/interp-C" ast env)
@@ -98,7 +98,7 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; psuedo-x86 and x86
     ;; s,d ::= (var x) | (int n) | (reg r) | (deref r n)
-    ;; i   ::= (movq s d) | (addq s d) | (subq s d) | (imulq s d) 
+    ;; i   ::= (movq s d) | (addq s d) | (subq s d) | (imulq s d)
     ;;       | (negq d) | (callq f)
     ;; psuedo-x86 ::= (program (x ...) i ...)
 
@@ -113,12 +113,12 @@
                      `((addq 2 ,+)
                        (subq 2 ,(lambda (s d) (- d s)))
                        (negq 1 ,-)))])
-    
+
     (define/public (interp-x86-op op)
       (define (err)
         (error 'interp-R0/interp-x86-op "unmatched ~a" op))
       (cadr (hash-ref x86-ops op err)))
-                             
+
 
 
     (define/public (interp-x86-exp env)
@@ -139,17 +139,17 @@
           (vomit "R0/interp-x86" (car ast) env))
         (match ast
 	   ['() env]
-	   [`((callq read_int) . ,ss) 
+	   [`((callq read_int) . ,ss)
 	    ((interp-x86 (cons (cons 'rax (read)) env)) ss)]
            [`((movq ,s ,d) . ,ss)
             (define x (get-name d))
 	    (define v ((interp-x86-exp env) s))
 	    ((interp-x86 (cons (cons x v) env)) ss)]
-	   [`(program ,xs ,ss ...) 
+	   [`(program ,xs ,ss ...)
 	    (let ([env ((interp-x86 '()) ss)])
               (lookup 'rax env))]
 	   [`((,binary-op ,s ,d) . ,ss)
-	    (let ([s ((interp-x86-exp env) s)] 
+	    (let ([s ((interp-x86-exp env) s)]
 		  [d ((interp-x86-exp env) d)]
                   [x (get-name d)]
 		  [f (interp-x86-op binary-op)])
@@ -175,7 +175,7 @@
     (inherit-field x86-ops)
 
     (define/override (primitives)
-      (set-union (super primitives) 
+      (set-union (super primitives)
 		 (set 'eq? 'and 'or 'not '< '<= '> '>=)))
 
     (define/override (interp-op op)
@@ -299,23 +299,27 @@
 
     (define (eflags-status env cc)
       (match cc
-	 ['e 
-	  (define eflags ((interp-x86-exp env) '(reg __flag)))
-	  (arithmetic-shift (bitwise-and eflags #b1000000) -6)]
-	 ['l
+     ['e
+      (define eflags ((interp-x86-exp env) '(reg __flag)))
+      (arithmetic-shift (bitwise-and eflags #b1000000) -6)]
+     ['l
           ;; Get the value of the lt flag which doesn't actually exist
           ;; the lt flag is simulated by overflow == sign for x86
-	  (define eflags ((interp-x86-exp env) '(reg __flag)))
-	  (define overflow (bitwise-and eflags #b100000000000))
-	  (define sign     (bitwise-and eflags #b000010000000))
-	  (if (= overflow sign) 1 0)]
-	 ['le
-	  (or (eflags-status env 'e) (eflags-status env 'l))]
-	 ['g
-	  (not (eflags-status env 'le))]
-	 ['ge
-	  (not (eflags-status env 'l))]))
-    
+      (define eflags ((interp-x86-exp env) '(reg __flag)))
+      (define overflow (bitwise-and eflags #b100000000000))
+      (define sign     (bitwise-and eflags #b000010000000))
+      (if (= overflow sign) 1 0)]
+     ['le
+      (if (or (eq? 1 (eflags-status env 'e))
+          (eq? 1 (eflags-status env 'l)))
+          1 0)]
+     ['g
+      (if (not (eq? 1 (eflags-status env 'le)))
+          1 0)]
+     ['ge
+      (if (not (eq? 1 (eflags-status env 'l)))
+          1 0)]))
+
     (define/override (interp-x86 env)
       (lambda (ast)
         (when (pair? ast)
@@ -335,7 +339,7 @@
           [`((label ,l) . ,ss)
            ((interp-x86 env) ss)]
           [`((cmpq ,s1 ,s2) . ,ss)
-           (let* ([v1 ((interp-x86-exp env) s1)] 
+           (let* ([v1 ((interp-x86-exp env) s1)]
                   [v2 ((interp-x86-exp env) s2)]
                   [zero   (arithmetic-shift (b2i (eq? v1 v2)) 6)]
                   [eflags (bitwise-ior zero)])
@@ -346,13 +350,10 @@
            ((interp-x86 (cons (cons x v) env)) ss)]
           [`((jmp ,label) . ,ss)
            ((interp-x86 env) (goto-label label (program)))]
-          [`((jmp-if e ,label) . ,ss)
-           (let* ([eflags (lookup '__flag env)]
-                  [zero   (bitwise-and #b1000000 eflags)]
-                  [zero?  (i2b (arithmetic-shift zero -6))])
-             (cond [zero? 
-                    ((interp-x86 env) (goto-label label (program)))]
-                   [else ((interp-x86 env) ss)]))]
+          [`((jmp-if ,cc ,label) . ,ss)
+           (cond [(eq? (eflags-status env cc) 1)
+                  ((interp-x86 env) (goto-label label (program)))]
+                 [else ((interp-x86 env) ss)])]
 	   [`(program ,xs (type ,ty) ,ss ...)
             (display-by-type ty ((interp-x86 env) `(program ,xs ,@ss)) env)]
 	   [`(program ,xs ,ss ...)
@@ -370,7 +371,7 @@
         [else (error (format "don't know how to display type ~a" ty))]))
 
     ));; class interp-R1
-    
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interpreters for S2: Vectors
 
@@ -387,7 +388,7 @@
         [else (super display-by-type ty val env)]))
 
 
-    ;; The simulated global state of the program 
+    ;; The simulated global state of the program
     ;; define produces private fields
     (define memory (box '()))
     (define uninitialized 'uninitialized-value-from-memory)
@@ -421,7 +422,7 @@
       (lambda (addr value)
         (let-values ([(start stop name vect) (fetch-page addr)])
           (vector-set! vect (arithmetic-shift (- addr start) -3) value))))
-    
+
     (define/public (collect!)
       (lambda (rootset bytes-requested)
         ;; after a call to collect we must guarantee there is enough
@@ -452,7 +453,7 @@
                    (= 0 (modulo size 8)))
         (error 'allocate! "expected non-negative fixnum in ~a" size))
       ;; Find the last address
-      (define max-addr 
+      (define max-addr
         (for/fold ([next 8])
                   ([page (in-list (unbox memory))])
           (match-let ([`(page ,_ ,stop ,_ ,_) page])
@@ -478,7 +479,7 @@
              (if (= addr ptr)
                  pages
                  (cons page (loop pages)))]))))
-    
+
     (define (fetch-page addr)
       ;; Create a string containing
       (define (fmt-err addr memory)
@@ -493,7 +494,7 @@
                    (positive? addr))
         (error 'fetch-page "expected non-negative fixnum in ~a" addr))
       (unless (= 0 (modulo addr 8))
-        (error 'fetch-page "expected quadword alligned address in ~a" addr)) 
+        (error 'fetch-page "expected quadword alligned address in ~a" addr))
       (let search ([m (unbox memory)])
         (match m
           [`() (error 'fetch-page (fmt-err addr memory))]
@@ -503,15 +504,15 @@
                (values min max name vect)
                (search rest-memory))]
           [other (error 'fetch-page "unmatched ~a" m)])))
-    
+
     (define/override (primitives)
-      (set-union (super primitives) 
+      (set-union (super primitives)
 		 (set 'vector 'vector-ref 'vector-set!)))
-    
+
     (define/override (interp-op op)
       (match op
         ['eq? (lambda (v1 v2)
-                (cond [(or (and (fixnum? v1) (fixnum? v2)) 
+                (cond [(or (and (fixnum? v1) (fixnum? v2))
                            (and (boolean? v1) (boolean? v2))
                            (and (vector? v1) (vector? v2)))
                        (eq? v1 v2)]))]
@@ -519,7 +520,7 @@
         ['vector-ref vector-ref]
         ['vector-set! vector-set!]
         [else (super interp-op op)]))
-    
+
     (define/override (interp-scheme env)
       (lambda (ast)
         (verbose "R2/interp-scheme" ast)
@@ -537,8 +538,8 @@
     (define (global-value-err ast)
       (lambda ()
         (error 'interp-R2 "global label is unknown in ~a" ast)))
-    
-    
+
+
     (define/public (fetch-global label)
       (let* ([err (global-value-err label)]
              [ref (hash-ref global-label-table label err)]
@@ -549,7 +550,7 @@
                  "global value, ~a, used before initialization"
                  label))
         value))
-    
+
     (define/override (interp-C env)
       (lambda (ast)
         (vomit "R2/interp-C" ast)
@@ -575,12 +576,12 @@
           ;; Collection isn't needed or possible in this representation
           [`(collect ,size)
            (unless (exact-nonnegative-integer? ((interp-C env) size))
-             (error 'interp-C "invalid argument to collect in ~a" ast)) 
+             (error 'interp-C "invalid argument to collect in ~a" ast))
            env]
           [`(collect ,rs ,size)
            (unless (and (exact-nonnegative-integer? ((interp-C env) rs))
                         (exact-nonnegative-integer? ((interp-C env) size)))
-             (error 'interp-C "invalid argument(s) to collect in ~a" ast)) 
+             (error 'interp-C "invalid argument(s) to collect in ~a" ast))
            env]
           ;; allocate a vector of length l and type t that is initialized.
           [`(allocate ,l) (build-vector l (lambda a uninitialized))]
@@ -590,10 +591,10 @@
              (unless (vector? (lookup x env))
                (error 'interp-C
                       "call-live-roots stores non-root ~a in ~a" x ast)))
-           ((seq-C env) ss)] 
+           ((seq-C env) ss)]
           [otherwise ((super interp-C env) ast)])))
-    
-    (define/override (interp-x86-exp env)     
+
+    (define/override (interp-x86-exp env)
       (lambda (ast)
         (vomit "interp-x86-exp" ast)
         (match ast
@@ -603,7 +604,7 @@
            (define addr (+ base i))
            ((memory-read) addr)]
           [else ((super interp-x86-exp env) ast)])))
-    
+
     (define/public (interp-x86-store env)
       (lambda (ast value)
         (vomit "interp-x86-store" ast value)
@@ -628,8 +629,8 @@
     (define (x86-unary-op? x)
       (let ([val (hash-ref x86-ops x #f)])
         (and val (= (car val) 1))))
-    
-    #;(interp-x86 : (env -> (R2-stmt -> env))) 
+
+    #;(interp-x86 : (env -> (R2-stmt -> env)))
     (define/override (interp-x86 env)
       (lambda (ast)
         (when (pair? ast)
@@ -642,11 +643,11 @@
           ;; (cmpq ,s2 ,s1) (jl then) (jmp else) ...
           ;; (if (< s1 s2) then else)
           [`((cmpq ,s2 ,s1) . ,ss)
-           (let* ([v1 ((interp-x86-exp env) s1)] 
-                  [v2 ((interp-x86-exp env) s2)] 
+           (let* ([v1 ((interp-x86-exp env) s1)]
+                  [v2 ((interp-x86-exp env) s2)]
                   [v3 (- v2 v1)]
                   [zero     (arithmetic-shift (b2i (eq? v3 0)) 6)]
-                  [sign     (arithmetic-shift (b2i (< v3 0)) 7)] 
+                  [sign     (arithmetic-shift (b2i (< v3 0)) 7)]
                   ;; Our numbers do not overflow so this bit is always 0
                   [overflow (arithmetic-shift 0 11)]
                   [eflags (bitwise-ior overflow sign zero)])
@@ -654,7 +655,7 @@
           ;; Initialize the state of the "runtime"
           [`((callq initialize) . ,ss)
            (define stack-size ((interp-x86-exp env) '(reg rdi)))
-           (define heap-size ((interp-x86-exp env) '(reg rsi))) 
+           (define heap-size ((interp-x86-exp env) '(reg rsi)))
            ((initialize!)  stack-size heap-size)
            ((interp-x86 env) ss)]
           [`((callq malloc) . ,ss)
@@ -665,7 +666,7 @@
            ((interp-x86 `((rax . ,(allocate! 'alloc num-bytes)) . ,env)) ss)]
           [`((callq collect) . ,ss)
            (define rootstack ((interp-x86-exp env) '(reg rdi)))
-           (define bytes-requested ((interp-x86-exp env) '(reg rsi))) 
+           (define bytes-requested ((interp-x86-exp env) '(reg rsi)))
            ((collect!) rootstack bytes-requested)
            ((interp-x86 env) ss)]
           [`((movq ,s ,d) . ,ss)
@@ -804,9 +805,9 @@
     (define (stack-arg-name n)
       (string->symbol (string-append "rsp_" (number->string n))))
 
-    (define/public (builtin-funs) 
+    (define/public (builtin-funs)
       (set 'malloc 'alloc 'collect 'initialize 'read_int))
-    
+
     (define/override (get-name ast)
       (match ast
          [`(stack-arg ,n) (stack-arg-name n)]
@@ -821,7 +822,7 @@
                    (for/list ([r arg-registers])
                      (assq r env))))
 	  (define passing-stack
-	    (for/list ([i (in-range 
+	    (for/list ([i (in-range
 			   0 (max 0 (- n (vector-length
 					  arg-registers))))])
 		      (define name (stack-arg-name (* i 8)))
@@ -835,7 +836,7 @@
 	  (define res (lookup 'rax result-env))
 	  ((interp-x86 (cons (cons 'rax res) env)) ss)]
 	 [else (error "interp-x86, expected a function, not" f-val)]))
-      
+
     (define/override (interp-x86-exp env)
       (lambda (ast)
 	(match ast
@@ -883,7 +884,7 @@
     (super-new)
     (inherit non-apply-ast)
     (inherit-field result)
-    
+
     (define/override (interp-scheme env)
       (lambda (ast)
         (verbose "R4/interp-scheme" ast)
@@ -947,14 +948,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interpreters for R6: type Any and inject/project
- 
+
 (define interp-R6
   (class interp-R4
     (super-new)
     (inherit-field result)
-    
+
     (define/override (primitives)
-      (set-union (super primitives) 
+      (set-union (super primitives)
 		 (set 'boolean? 'integer? 'vector? 'procedure?)))
 
     (define/override (interp-op op)
@@ -1000,7 +1001,7 @@
 	       (cond [(tyeq? t1 t2) v1]
 		     [else (error "in project, type mismatch" t1 t2)])]
 	      [else (error "in project, expected injected value" v)])]
-	  [else 
+	  [else
 	   ((super interp-scheme env) ast)]
 	  )))
 
@@ -1036,7 +1037,7 @@
 		      (error "in project, type mismatch" t1 t2)])]
 	      [else
 	       (error "in project, expected injected value" v)])]
-	  [else 
+	  [else
 	   ((super interp-C env) ast)]
 	  )))
 
