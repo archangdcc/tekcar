@@ -22,6 +22,14 @@ submitting an assignment:
     so if you don't have `utilities.rkt` in the repo, we can't run your
     compiler!
 
+  * If you're implementing an assignment which requires typechecking, also
+    provide a function named `typechecker`. Note that typechecking does NOT
+    need to be one of your compiler passes! Our testing frameworks' functions
+    (`interp-tests` and `compiler-tests`) both accept the `typecheck` function
+    in place of `#f` as the second argument, so you can simply pass `typecheck`
+    to these functions to have your programs automatically typechecked and
+    fed to your list of passes.
+
   * If you are a undergraduate student who has implemented a challenge
     assignment for extra credit, include a `README` file that states you have
     done so. This helps the graders determine if we should look for this or
