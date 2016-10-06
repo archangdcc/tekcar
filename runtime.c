@@ -4,7 +4,9 @@
 #include <assert.h>
 #include "runtime.h"
 
-// Often misunderstood static global variables in C are not
+// To do: we need to account for the "any" type. -Jeremy
+
+// Often misunderstood: static global variables in C are not
 // accessible to code outside of the module.
 // No one besides the collector ever needs to know tospace exists.
 static int64_t* tospace_begin;
@@ -15,18 +17,26 @@ static int64_t* tospace_end;
 static int initialized = 0;
 
 /*
-  Object Tag (64 bits)
-  #b|- 7 bit unused -|- 50 bit field [50, 0] -| 6 bits length -| 1 bit isNotForwarding Pointer  
+  Tuple Tag (64 bits)
+  #b|- 7 bit unused -|- 50 bit field [50, 0] -| 6 bits length -| 1 bit isNotForwarding Pointer
   * If the bottom-most bit is zero, the tag is really a forwarding pointer.
-  * Otherwise, its an object tag. In that case, the next 
+  * Otherwise, its an object tag. In that case, the next
     6 bits give the length of the object (max of 50 64-bit words).
     The next 50 bits say where there are pointers.
     A '1' is a pointer, a '0' is not a pointer.
 */
 static const int TAG_IS_NOT_FORWARD_MASK = 1;
-static const int TAG_LENGTH_MASK = 126;
+static const int TAG_LENGTH_MASK = 126; // 1111110
 static const int TAG_LENGTH_RSHIFT = 1;
 static const int TAG_PTR_BITFIELD_RSHIFT = 7;
+
+static void print_vector(int64_t* vector_ptr);
+static void print_heap(int64_t** rootstack_ptr);
+
+// cheney implements cheney's copying collection algorithm
+// There is a stub and explaination below.
+static void cheney(int64_t** rootstack_ptr);
+
 
 // Check to see if a tag is actually a forwarding pointer.
 static inline int is_forwarding(int64_t tag) {
@@ -43,6 +53,40 @@ static inline int64_t get_ptr_bitfield(int64_t tag){
   return tag >> TAG_PTR_BITFIELD_RSHIFT;
 }
 
+// The following needs to stay in sync with the any-tag function
+// in dynamic-typing.rkt.  -Jeremy
+#define ANY_TAG_MASK 7
+#define ANY_TAG_LEN 3
+#define ANY_TAG_INT 1    // 001
+#define ANY_TAG_BOOL 4   // 100
+#define ANY_TAG_VEC 2    // 010
+#define ANY_TAG_FUN 3    // 011
+#define ANY_TAG_VOID 5   // 101
+#define ANY_TAG_PTR 0 // not an any, a raw pointer
+
+int any_tag(int64_t any) {
+  return any & ANY_TAG_MASK;
+}
+
+int is_ptr(int64_t* p) {
+  int64_t q = (int64_t)p;
+  if (q == 0) {
+    return 0;
+  } else {
+    int t = any_tag(q);
+    return t == ANY_TAG_PTR || t == ANY_TAG_VEC;
+  }
+}
+
+int64_t* to_ptr(int64_t* p) {
+  int64_t q = (int64_t)p;
+  if (any_tag(q) == ANY_TAG_PTR)
+    return p;
+  else
+    return (int64_t*)(q & ~ANY_TAG_MASK);
+}
+
+
 // initialize the state of the collector so that allocations can occur
 void initialize(uint64_t rootstack_size, uint64_t heap_size)
 {
@@ -50,7 +94,7 @@ void initialize(uint64_t rootstack_size, uint64_t heap_size)
   assert(sizeof(int64_t) == sizeof(int64_t*));
   assert((heap_size % sizeof(int64_t)) == 0);
   assert((rootstack_size % sizeof(int64_t)) == 0);
-  
+
   // 2. Allocate memory (You should always check if malloc gave you memory)
   if (!(fromspace_begin = malloc(heap_size))) {
     printf("Failed to malloc %" PRIu64 " byte fromspace\n", heap_size);
@@ -66,57 +110,62 @@ void initialize(uint64_t rootstack_size, uint64_t heap_size)
     printf("Failed to malloc %" PRIu64 " byte rootstack", rootstack_size);
     exit(EXIT_FAILURE);
   }
-  
+
   // 2.5 Calculate the ends memory we are using.
   // Note: the pointers are for a half open interval [begin, end)
   fromspace_end = fromspace_begin + (heap_size / sizeof(int64_t));
   tospace_end = tospace_begin + (heap_size / sizeof(int64_t));
   rootstack_end = rootstack_begin + (rootstack_size / sizeof(int64_t));
 
-  // 3 Initialize the global free pointer 
+  // 3 Initialize the global free pointer
   free_ptr = fromspace_begin;
-  
+
   // Useful for debugging
   initialized = 1;
 
 }
 
-// cheney implements cheney's copying collection algorithm
-// There is a stub and explaination below.
-static void cheney(int64_t** rootstack_ptr);
-
 void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
 {
+#if 0
+  printf("collecting, need %ld\n", bytes_requested);
+  print_heap(rootstack_ptr);
+#endif
+
   // 1. Check our assumptions about the world
   assert(initialized);
   assert(rootstack_ptr >= rootstack_begin);
   assert(rootstack_ptr < rootstack_end);
-  
-#ifndef NDEBUG  
+
+#ifndef NDEBUG
   // All pointers in the rootstack point to fromspace
-  for(unsigned int i = 0; rootstack_begin + i < rootstack_ptr; i++){
-    int64_t* a_root = rootstack_begin[i];
-    assert(fromspace_begin <= a_root && a_root < fromspace_end);
+  for (unsigned int i = 0; rootstack_begin + i < rootstack_ptr; i++){
+    int64_t* root = rootstack_begin[i];
+    if (is_ptr(root)) {
+      int64_t* a_root = to_ptr(root);
+      assert(fromspace_begin <= a_root && a_root < fromspace_end);
+    }
   }
 #endif
-  
+
   // 2. Perform collection
   cheney(rootstack_ptr);
-  
+
   // 3. Check if collection freed enough space in order to allocate
   if (sizeof(int64_t) * (fromspace_end - free_ptr) < bytes_requested){
-    /* 
+    //printf("resizing the heap\n");
+    /*
        If there is not enough room left for the bytes_requested,
        allocate larger tospace and fromspace.
-       
+
        In order to determine the new size of the heap double the
        heap size until it is bigger than the occupied portion of
        the heap plus the bytes requested.
-       
+
        This covers the corner case of heaps objects that are
        more than half the size of the heap. No a very likely
        scenario but slightly more robust.
-     
+
        One corner case that isn't handled is if the heap is size
        zero. My thought is that malloc probably wouldn't give
        back a pointer if you asked for 0 bytes. Thus initialize
@@ -125,14 +174,21 @@ void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
        to determine initial heap size to this is a non-issue
        in reality.
     */
-    
+
     unsigned long occupied_bytes = (free_ptr - fromspace_begin) * sizeof(int64_t);
     unsigned long needed_bytes = occupied_bytes + bytes_requested;
     unsigned long old_len = fromspace_end - fromspace_begin;
     unsigned long old_bytes = old_len * sizeof(int64_t);
     unsigned long new_bytes = old_bytes;
-    
-    while (new_bytes < needed_bytes) new_bytes = 2 * new_bytes;
+
+#if 0
+    // this version is good for debugging purposes -Jeremy
+    new_bytes = needed_bytes;
+#else
+    while (new_bytes < needed_bytes) {
+      new_bytes = 2 * new_bytes;
+    }
+#endif
 
     // Free and allocate a new tospace of size new_bytes
     free(tospace_begin);
@@ -141,7 +197,7 @@ void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
       printf("failed to malloc %ld byte fromspace", new_bytes);
       exit(EXIT_FAILURE);
     }
-    
+
     tospace_end = tospace_begin + new_bytes / (sizeof(int64_t));
 
     // The pointers on the stack and in the heap must be updated,
@@ -150,8 +206,8 @@ void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
     // effect, and we have already implemented it.
     cheney(rootstack_ptr);
 
-    
-    // Cheney flips tospace and fromspace. Thus, we allocate another 
+
+    // Cheney flips tospace and fromspace. Thus, we allocate another
     // tospace not fromspace as we might expect.
     free(tospace_begin);
 
@@ -160,35 +216,53 @@ void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
       exit(EXIT_FAILURE);
     }
 
-    tospace_end = tospace_begin + new_bytes / (sizeof(int64_t));    
+    tospace_end = tospace_begin + new_bytes / (sizeof(int64_t));
   }
 
   assert(free_ptr < fromspace_end);
   assert(free_ptr >= fromspace_begin);
 #ifndef NDEBUG
   // All pointers in the rootstack point to fromspace
-  for(unsigned long i = 0; rootstack_begin + i < rootstack_ptr; i++){
-    int64_t* a_root = rootstack_begin[i];
-    assert(fromspace_begin <= a_root && a_root < fromspace_end);
+  for (unsigned long i = 0; rootstack_begin + i < rootstack_ptr; i++){
+    int64_t* root = rootstack_begin[i];
+    if (is_ptr(root)) {
+      int64_t* a_root = to_ptr(root);
+      assert(fromspace_begin <= a_root && a_root < fromspace_end);
+    }
   }
   // All pointers in fromspace point to fromspace
+  /*printf("validating pointers in fromspace [%lld, %lld)\n",
+    (int64_t)fromspace_begin, (int64_t)fromspace_end);*/
   int64_t* scan_ptr = fromspace_begin;
-  while(scan_ptr != free_ptr){
+  while (scan_ptr != free_ptr){
     int64_t tag = *scan_ptr;
     unsigned char len = get_length(tag);
+    //printf("\tlen %d\n", (int)len);
     int64_t isPtrBits = get_ptr_bitfield(tag);
     int64_t* data = scan_ptr + 1;
     scan_ptr = scan_ptr + len + 1;
-    for(unsigned char i = 0; i < len; i++){
+    for (unsigned char i = 0; i != len; i++){
       if ((isPtrBits >> i) & 1){
         int64_t* ptr = (int64_t*) data[i];
-        assert(ptr < fromspace_end);
-        assert(ptr >= fromspace_begin);
+    if (is_ptr(ptr)) {
+      /*printf("\ti: %d, ptr: %lld, to_ptr: %lld", i,
+         (int64_t)ptr,
+         (int64_t)to_ptr(ptr));*/
+      int64_t* real_ptr = to_ptr(ptr);
+      assert(real_ptr < fromspace_end);
+      assert(real_ptr >= fromspace_begin);
+    }
       }
     }
   }
 #endif
-}
+
+#if 0
+  printf("finished collecting\n");
+  print_heap(rootstack_ptr);
+  printf("---------------------------------------\n");
+#endif
+} // collect
 
 // copy_vector is responsible for doing a pointer oblivious
 // move of vector data and updating the vector pointer with
@@ -202,7 +276,7 @@ static void copy_vector(int64_t** vector_ptr_loc);
   (or reallocates) the data pointed to by the roots into tospace and
   replaces the pointers in the rootset with pointers to the
   copies. (See the description of copy_vector below).
-  
+
   While this initial copying of root vectors is occuring the free_ptr
   has been maintained to remain at the next free memory location in
   tospace. Cheney's algorithm then scans a vector at a time until it
@@ -235,7 +309,7 @@ void cheney(int64_t** rootstack_ptr)
 }
 
 
-/* 
+/*
  copy_vector takes a pointer, (`location`) to a vector pointer,
  copies the vector data from fromspace into tospace, and updates the
  vector pointer so that it points to the the data's new address in
@@ -248,7 +322,7 @@ void cheney(int64_t** rootstack_ptr)
    [*] old vector pointer
     |
     +-> [tag or forwarding pointer | ? | ? | ? | ...] old vector data
-        
+
  Postcondition:
     * original vector pointer location
     |
@@ -256,10 +330,10 @@ void cheney(int64_t** rootstack_ptr)
    [*] new vector pointer
     |
     |   [ * forwarding pointer | ? | ? | ? | ...] old vector data
-    |     |     
+    |     |
     |     V
     +---->[tag | ? | ? | ? | ...] new vector data
- 
+
  Since multiple pointers to the same vector can exist within the
  memory of the program this may or may not be the first time
  we called `copy_vector` on a location that contains this old vector
@@ -276,18 +350,18 @@ void cheney(int64_t** rootstack_ptr)
  to indicate the new address to subsequent copy_vector calls for this
  vector pointer. Furthermore, we need to store the new vector's pointer
  at the location where where we found the old vector pointer.
- 
+
  If the tag is a forwarding pointer, the `is_forwarding(tag) will return
  true and we need to update the location storing the old vector pointer to
  point to the new data instead).
- 
+
  As a side note any time you are allocating new data you must maintain
  the invariant that the free_ptr points to the next free memory address.
 
 */
 void copy_vector(int64_t** vector_ptr_loc)
 {
-  
+
 }
 
 
@@ -333,17 +407,6 @@ void print_ellipsis() {
   printf("#(...)");
 }
 
-#define ANY_TAG_MASK 3
-#define ANY_TAG_LEN 2
-#define ANY_TAG_INT 0
-#define ANY_TAG_BOOL 1
-#define ANY_TAG_VEC 2
-#define ANY_TAG_FUN 3
-
-int any_tag(int64_t any) {
-  return any & ANY_TAG_MASK;
-}
-
 /* to do: need to cycle detection. -Jeremy */
 void print_any(int64_t any) {
   switch (any_tag(any)) {
@@ -363,7 +426,7 @@ void print_any(int64_t any) {
     unsigned char len = get_length(tag);
     printf("#(");
     for (int i = 0; i != len; ++i) {
-      print_any(vector_ptr[i + 1]);
+      print_any(vector_ptr[i + 1]); // this is wrong -Jeremy
     }
     printf(")");
     break;
@@ -371,5 +434,53 @@ void print_any(int64_t any) {
   case ANY_TAG_FUN:
     printf("#<procedure>");
     break;
+  case ANY_TAG_VOID:
+    printf("#<void>");
+    break;
+  default:
+    printf("unrecognized!");
+    exit(-1);
   }
 }
+
+void print_heap(int64_t** rootstack_ptr)
+{
+  printf("rootstack len = %ld\n", rootstack_ptr - rootstack_begin);
+  for (int64_t** root_loc = rootstack_begin;
+       root_loc != rootstack_ptr;
+       ++root_loc) {
+    if (is_ptr(*root_loc)) {
+      print_vector(to_ptr(*root_loc));
+    } else {
+      printf("%ld", (int64_t)*root_loc);
+    }
+    printf("\n");
+  }
+  printf("\n");
+}
+
+void print_vector(int64_t* vector_ptr)
+{
+  int64_t tag = vector_ptr[0];
+  unsigned char len = get_length(tag);
+  int64_t* scan_ptr = vector_ptr;
+  int64_t* next_ptr = vector_ptr + len + 1;
+
+  printf("%ld=#(", (int64_t)vector_ptr);
+  scan_ptr += 1;
+  int64_t isPointerBits = get_ptr_bitfield(tag);
+  while (scan_ptr != next_ptr) {
+    if ((isPointerBits & 1) == 1 && is_ptr((int64_t*)*scan_ptr)) {
+      print_vector(to_ptr((int64_t*)*scan_ptr));
+    } else {
+      printf("%ld", (int64_t)*scan_ptr);
+    }
+    isPointerBits = isPointerBits >> 1;
+    scan_ptr += 1;
+    if (scan_ptr != next_ptr) {
+      printf(", ");
+    }
+  }
+  printf(")");
+}
+
