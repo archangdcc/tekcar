@@ -632,6 +632,10 @@
                (error 'interp-C
                       "call-live-roots stores non-root ~a in ~a" x ast)))
            ((seq-C env) ss)]
+          [`(program ,xs (type ,ty) ,ss ...)
+           ((initialize!) runtime-config:rootstack-size
+            runtime-config:heap-size)
+           ((super interp-C env) `(program ,xs ,@ss))]
           [otherwise ((super interp-C env) ast)])))
 
     (define/override (interp-x86-exp env)
