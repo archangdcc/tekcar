@@ -962,9 +962,13 @@
 (define interp-R4
   (class interp-R3
     (super-new)
-    (inherit non-apply-ast initialize!)
+    (inherit initialize!)
     (inherit-field result)
 
+    (define/override (non-apply-ast)
+      (set-union (super non-apply-ast)
+                 (set 'global-value 'allocate 'collect)))
+    
     (define/override (interp-scheme env)
       (lambda (ast)
         (verbose "R4/interp-scheme" ast)
