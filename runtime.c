@@ -30,9 +30,6 @@ static const int TAG_LENGTH_MASK = 126; // 1111110
 static const int TAG_LENGTH_RSHIFT = 1;
 static const int TAG_PTR_BITFIELD_RSHIFT = 7;
 
-static void print_vector(int64_t* vector_ptr);
-static void print_heap(int64_t** rootstack_ptr);
-
 // cheney implements cheney's copying collection algorithm
 // There is a stub and explaination below.
 static void cheney(int64_t** rootstack_ptr);

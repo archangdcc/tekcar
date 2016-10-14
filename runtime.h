@@ -26,7 +26,7 @@ void initialize(uint64_t rootstack_size, uint64_t heap_size);
 
 // Collect garbage data making room for a requested amount of memory.
 // Use the pointers in the rootstack to determine what values in the
-// heap are still live. 
+// heap are still live.
 void collect(int64_t** rootstack_ptr, uint64_t bytes_requested);
 
 // Read an integer from stdin.
@@ -38,8 +38,9 @@ void print_int(int64_t x);
 // Print a boolean to stdout.
 void print_bool(int64_t x);
 
+void print_heap(int64_t** rootstack_ptr);
+void print_vector(int64_t* vector_ptr);
 void print_vecbegin();
-
 void print_vecend();
 void print_space();
 
