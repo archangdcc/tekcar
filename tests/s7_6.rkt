@@ -1,4 +1,4 @@
-(let ([f (lambda (x) (+ 1 x))])
+(let ([f (lambda (x) (+ x (- 1)))])
  (let ([g (lambda (x) (+ x (- 1)))])
   (let ([t (lambda (x) (+ x (- 1)))])
    (let ([j (lambda (x) (+ x (- 1)))])
