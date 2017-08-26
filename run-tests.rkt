@@ -10,5 +10,5 @@
 (interp-tests "integers and arithmetic" #f r0-passes interp-scheme "r0" (range 1 5))
 (display "tests passed!") (newline)
 
-(interp-tests "integers and arithmetic" #f r1-passes interp-scheme "r1" (range 1 22))
+(interp-tests "integers and arithmetic" #f r1-passes interp-scheme "r1" (range 1 27))
 (display "tests passed!") (newline)
