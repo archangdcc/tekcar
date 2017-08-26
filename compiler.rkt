@@ -2,6 +2,7 @@
 (require racket/fixnum)
 (require "interp.rkt")
 
+(require "ch1/pe.rkt")
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
 
@@ -41,5 +42,6 @@
 (define r0-passes
   `( ("flipper" ,flipper ,interp-scheme)
      ("partial evaluator" ,pe-arith ,interp-scheme)
+     ("improved partial evaluator" ,pe ,interp-scheme)
      ))
 
