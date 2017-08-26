@@ -3,8 +3,11 @@
 (require "interp.rkt")
 
 (require "ch1/pe.rkt")
+(require "ch2/uniquify.rkt")
+
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
+(provide r1-passes)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
@@ -45,3 +48,6 @@
      ("improved partial evaluator" ,pe ,interp-scheme)
      ))
 
+(define r1-passes
+  `( ("uniquify" ,(uniquify '()) ,interp-scheme)
+     ))
