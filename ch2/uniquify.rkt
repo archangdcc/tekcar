@@ -8,6 +8,7 @@
     (match e
       [(? symbol?) (lookup e alist)]
       [(? integer?) e]
+      ['(read) e]
       [`(let ([,x ,e]) ,body)
         (let ([y (gensym)])
           `(let ([,y ,((uniquify alist) e)])
