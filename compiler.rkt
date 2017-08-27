@@ -4,6 +4,7 @@
 
 (require "ch1/pe.rkt")
 (require "ch2/uniquify.rkt")
+(require "ch2/flatten.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -50,4 +51,5 @@
 
 (define r1-passes
   `( ("uniquify" ,(uniquify '()) ,interp-scheme)
+     ("flatten"  ,flatten ,interp-C)
      ))
