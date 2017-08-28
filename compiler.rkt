@@ -7,6 +7,7 @@
 (require "ch2/flatten.rkt")
 (require "ch2/select-instructions.rkt")
 (require "ch2/assign-homes.rkt")
+(require "ch2/patch-instructions.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -56,4 +57,5 @@
      ("flatten" ,flatten ,interp-C)
      ("select-instructions" ,select-instructions ,interp-x86)
      ("assign-homes" ,assign-homes ,interp-x86)
+     ("patch-instructions" ,patch-instructions ,interp-x86)
      ))
