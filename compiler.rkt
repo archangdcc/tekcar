@@ -6,6 +6,7 @@
 (require "ch2/uniquify.rkt")
 (require "ch2/flatten.rkt")
 (require "ch2/select-instructions.rkt")
+(require "ch2/assign-homes.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -54,4 +55,5 @@
   `( ("uniquify" ,(uniquify '()) ,interp-scheme)
      ("flatten" ,flatten ,interp-C)
      ("select-instructions" ,select-instructions ,interp-x86)
+     ("assign-homes" ,assign-homes ,interp-x86)
      ))
