@@ -22,5 +22,5 @@
   (match e
     [`(program ,vars . ,instrs)
      `(program
-        ,(* 8 (length vars)) .
+        ,(* (+ 1 (ceiling (/ (length vars) 2))) 16) .  ;; add up to multiples of 16 and add old rbp, return address
         ,(map (assign-home vars) instrs))]))
