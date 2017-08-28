@@ -8,6 +8,7 @@
 (require "ch2/select-instructions.rkt")
 (require "ch2/assign-homes.rkt")
 (require "ch2/patch-instructions.rkt")
+(require "ch2/print-x86.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -58,4 +59,5 @@
      ("select-instructions" ,select-instructions ,interp-x86)
      ("assign-homes" ,assign-homes ,interp-x86)
      ("patch-instructions" ,patch-instructions ,interp-x86)
+     ("print-x86" ,print-x86 ,interp-x86)
      ))
