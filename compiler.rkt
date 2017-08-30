@@ -13,7 +13,6 @@
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
 (provide r1-passes)
-(provide r1-final)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
@@ -60,13 +59,5 @@
      ("select-instructions" ,select-instructions ,interp-x86)
      ("assign-homes" ,assign-homes ,interp-x86)
      ("patch-instructions" ,patch-instructions ,interp-x86)
-     ))
-
-(define r1-final
-  `( ("uniquify" ,(uniquify '()) ,interp-scheme)
-     ("flatten" ,flatten ,interp-C)
-     ("select-instructions" ,select-instructions ,interp-x86)
-     ("assign-homes" ,assign-homes ,interp-x86)
-     ("patch-instructions" ,patch-instructions ,interp-x86)
-     ("print-x86" ,print-x86 ,interp-x86)
+     ("print-x86" ,print-x86 #f)
      ))
