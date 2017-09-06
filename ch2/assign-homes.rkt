@@ -10,12 +10,10 @@
 (define (assign-home vars)
   (lambda (instr)
     (match instr
-      [`(,op (var ,x) (var ,y))
-       `(,op (deref rbp ,(map-stk vars x)) (deref rbp ,(map-stk vars y)))]
-      [`(,op (var ,x) . ,es)
-       `(,op (deref rbp ,(map-stk vars x)) . ,es)]
-      [`(,op ,e (var ,x))
-       `(,op ,e (deref rbp ,(map-stk vars x)))]
+      [`(var ,x) `(deref rbp ,(map-stk vars x))]
+      [`(,op ,e) `(,op ,((assign-home vars) e))]
+      [`(,op ,e1 ,e2)
+       `(,op ,((assign-home vars) e1) ,((assign-home vars) e2))]
       [_ instr])))
 
 (define (assign-homes e)
