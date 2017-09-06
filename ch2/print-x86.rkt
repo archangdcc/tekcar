@@ -3,7 +3,7 @@
 (provide print-x86)
 
 (define func-pre
-  (if (eq? (system-type 'os) 'maxosx)
+  (if (eq? (system-type 'os) 'macosx)
     "_" ""))
 
 (define (header n)
