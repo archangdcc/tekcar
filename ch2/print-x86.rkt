@@ -2,10 +2,16 @@
 
 (provide print-x86)
 
+(define func-pre
+  (if (eq? (system-type 'os) 'maxosx)
+    "_" ""))
 
 (define (header n)
   (string-append
-    "\t.globl\tmain\n"
+    "\t.globl\t"
+    func-pre
+    "main\n"
+    func-pre
     "main:\n"
     "\tpushq\t%rbp\n"
     "\tmovq\t%rsp, %rbp\n"
@@ -19,7 +25,9 @@
   (string-append
     "\n\n"
     "\tmovq\t%rax, %rdi\n"
-    "\tcallq\tprint_int\n"
+    "\tcallq\t"
+    func-pre
+    "print_int\n"
       (if (equal? n 16)
     ""
       (format
