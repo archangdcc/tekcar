@@ -1,5 +1,7 @@
 #lang racket
 
+(require "../global.rkt")
+
 (provide select-instructions)
 
 (define (select-instructions e)

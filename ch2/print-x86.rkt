@@ -1,10 +1,8 @@
 #lang racket
 
-(provide print-x86)
+(require "../global.rkt")
 
-(define func-pre
-  (if (eq? (system-type 'os) 'macosx)
-    "_" ""))
+(provide print-x86)
 
 (define (header n)
   (string-append
@@ -42,7 +40,7 @@
     [`(int ,n) (format "$~v" n)]
     [`(reg ,reg) (format "%~a" reg)]
     [`(deref ,reg ,offset) (format "~v(%~a)" offset reg)]
-    [`(callq ,label) (format "\tcallq\t~a" label)]
+    [`(callq ,label) (format "\tcallq\t~a~s" func-pre label)]
     [`(program ,n . ,instrs)
       (string-join
         (map print-x86 instrs) "\n"

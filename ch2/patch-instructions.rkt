@@ -1,8 +1,8 @@
 #lang racket
 
+(require "../global.rkt")
 (provide patch-instructions)
 
-(define temp-reg 'rax)
 (define (patch-instructions e)
   (match e
     ['() '()]
