@@ -39,4 +39,4 @@
      `((movq ,(select-instructions y) (reg rax)) .
        ,(select-instructions instr))]
     [`(program ,var . ,instr)
-     `(program ,var . ,(select-instructions instr))]))
+     `(program (,var) . ,(select-instructions instr))]))
