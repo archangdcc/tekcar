@@ -4,39 +4,45 @@
 
 (provide select-instructions)
 
+
+(define (select-arg arg)
+  (cond
+    [(integer? arg) `(int ,arg)]
+    [(symbol? arg) `(var ,arg)]))
+
+(define (select-instr instr tail)
+  (match instr
+    [`(assign ,lhs (read))
+      `((callq read_int)
+        (movq (reg rax) (var ,lhs)) .
+        ,tail)]
+    [`(assign ,x (- ,x))
+      `((negq (var ,x)) .
+        ,tail)]
+    [`(assign ,x (- ,y))
+      `((movq ,(select-arg y) (var ,x))
+        (negq (var ,x)) .
+        ,tail)]
+    [`(assign ,x (+ ,y ,x))
+      `((addq ,(select-arg y) (var ,x)) .
+        ,tail)]
+    [`(assign ,x (+ ,x ,y))
+      `((addq ,(select-arg y) (var ,x)) .
+        ,tail)]
+    [`(assign ,x (+ ,y ,z))
+      `((movq ,(select-arg y) (var ,x))
+        (addq ,(select-arg z) (var ,x)) .
+        ,tail)]
+    [`(assign ,x ,y)
+      `((movq ,(select-arg y) (var ,x)) .
+        ,tail)]
+    [`(return ,y)
+      `((movq ,(select-arg y) (reg ,return-reg)) .
+        ,tail)]))
+
 (define (select-instructions e)
   (match e
-    [`,n #:when (integer? n)
-     `(int ,n)]
-    [`,x #:when (symbol? x)
-     `(var ,x)]
-    ['() '()]
-    [`((assign ,lhs (read)) . ,instr)
-     `((callq read_int)
-       (movq (reg rax) (var ,lhs)) .
-       ,(select-instructions instr))]
-    [`((assign ,x (- ,x)) . ,instr)
-     `((negq (var ,x)) .
-       ,(select-instructions instr))]
-    [`((assign ,x (- ,y)) . ,instr)
-     `((movq ,(select-instructions y) (var ,x))
-       (negq (var ,x)) .
-       ,(select-instructions instr))]
-    [`((assign ,x (+ ,y ,x)) . ,instr)
-     `((addq ,(select-instructions y) (var ,x)) .
-       ,(select-instructions instr))]
-    [`((assign ,x (+ ,x ,y)) . ,instr)
-     `((addq ,(select-instructions y) (var ,x)) .
-       ,(select-instructions instr))]
-    [`((assign ,x (+ ,y ,z)) . ,instr)
-     `((movq ,(select-instructions y) (var ,x))
-       (addq ,(select-instructions z) (var ,x)) .
-       ,(select-instructions instr))]
-    [`((assign ,x ,y) . ,instr)
-     `((movq ,(select-instructions y) (var ,x)) .
-       ,(select-instructions instr))]
-    [`((return ,y) . ,instr)
-     `((movq ,(select-instructions y) (reg rax)) .
-       ,(select-instructions instr))]
-    [`(program ,var . ,instr)
-     `(program (,var) . ,(select-instructions instr))]))
+    [`(program ,vars . ,instrs)
+      (let ([x86*-instrs
+             (foldr select-instr '() instrs)])
+        `(program (,vars) . ,x86*-instrs))]))
