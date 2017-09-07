@@ -2,8 +2,8 @@
 
 (provide uncover-live)
 
-(define (vars-assort stmt)  ;; return all-vars, w-vars, r-vars
-  (match stmt
+(define (vars-assort instr)  ;; return all-vars, w-vars, r-vars
+  (match instr
     [`(movq (var ,y) (var ,x))
       (values (set x y) (set x) (set y))]
     [`(movq ,arg (var ,x))        ;; arg: int or reg
@@ -12,27 +12,23 @@
       (values (set x y) (set x) (set x y))]
     [`(addq ,arg (var ,x))        ;; arg: int or reg
       (values (set x) (set x) (set x))]
-    [`(,op (var ,x) (reg ,r))
+    [`(,op (var ,x) (reg ,r))     ;; need more work if r != rax
       (values (set x) (set) (set x))]
     [`(negq (var ,x))
       (values (set x) (set x) (set x))]
     [`(callq ,label)
       (values (set) (set) (set))]
-    [`(return (int ,x))
-      (values (set) (set) (set))]
-    [`(return (var ,x))
-      (values (set x) (set) (set x))]
     [_ (values (set) (set) (set))]))
 
-(define (uncover-live-helper live-after stmts)
+(define (uncover-live-helper live-after instrs)
   ;; the car of the result should be ignored
-  ;; because it is the live set before first stmt
-  (if (eq? stmts '()) `(,live-after)
+  ;; because it is the live set before first instr
+  (if (eq? instrs '()) `(,live-after)
     (let-values
       ([(a-vars w-vars r-vars)
-        (vars-assort (car stmts))])
+        (vars-assort (car instrs))])
       (let ([rec
-             (uncover-live-helper live-after (cdr stmts))])
+             (uncover-live-helper live-after (cdr instrs))])
         (cons
           (set-union
             (set-subtract (car rec) w-vars)
@@ -41,7 +37,7 @@
 
 (define (uncover-live e)
   (match e
-    [`(program (,vars ,infos ...) . ,stmts)
+    [`(program (,vars . ,infos) . ,instrs)
       (let ([live-after
-             (cdr (uncover-live-helper (set) stmts))])
-        `(program (,vars ,live-after ,infos) . ,stmts))]))
+             (cdr (uncover-live-helper (set) instrs))])
+        `(program (,vars ,live-after . ,infos) . ,instrs))]))
