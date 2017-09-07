@@ -1,7 +1,15 @@
 #lang racket
 
-(provide func-pre temp-reg return-reg
-         callee-regs caller-regs)
+(provide func-pre init-sym gen-sym
+         temp-reg return-reg callee-regs caller-regs)
+
+(define sym-pool (void))
+(define (init-sym)
+  (set! sym-pool (make-hash)))
+(define (gen-sym y)
+  (let ([value (hash-ref! sym-pool y 0)])
+   (hash-set! sym-pool y (+ 1 value))
+   (string->symbol (format "~s.~s" y value))))
 
 (define func-pre
   (if (eq? (system-type 'os) 'macosx)

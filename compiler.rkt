@@ -12,6 +12,7 @@
 (require "ch2/print-x86.rkt")
 
 (require "ch3/uncover-live.rkt")
+(require "ch3/build-interference.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -58,7 +59,7 @@
      ))
 
 (define r1-passes
-  `( ("uniquify" ,(uniquify '()) ,interp-scheme)
+  `( ("uniquify" ,uniquify ,interp-scheme)
      ("flatten" ,flatten ,interp-C)
      ("select-instructions" ,select-instructions ,interp-x86)
      ("assign-homes" ,assign-homes ,interp-x86)
@@ -67,8 +68,9 @@
      ))
 
 (define r1-passes-ch3
-  `( ("uniquify" ,(uniquify '()) ,interp-scheme)
+  `( ("uniquify" ,uniquify ,interp-scheme)
      ("flatten" ,flatten ,interp-C)
      ("select-instructions" ,select-instructions ,interp-x86)
      ("uncover-live" ,uncover-live ,interp-x86)
+     ("build-interference" ,build-interference ,interp-x86)
      ))
