@@ -14,7 +14,7 @@
   (match instr
     [`(assign ,lhs (read))
       `((callq read_int)
-        (movq (reg rax) (var ,lhs)) .
+        (movq (reg ,return-reg) (var ,lhs)) .
         ,tail)]
     [`(assign ,x (- ,x))
       `((negq (var ,x)) .
