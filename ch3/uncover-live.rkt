@@ -37,7 +37,7 @@
 
 (define (uncover-live e)
   (match e
-    [`(program (,vars . ,infos) . ,instrs)
+    [`(program ,vars . ,instrs)
       (let ([live-after
              (cdr (uncover-live-helper (set) instrs))])
-        `(program (,vars ,live-after . ,infos) . ,instrs))]))
+        `(program (,@vars ,live-after) . ,instrs))]))

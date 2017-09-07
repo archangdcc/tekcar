@@ -45,4 +45,4 @@
     [`(program ,vars . ,instrs)
       (let ([x86*-instrs
              (foldr select-instr '() instrs)])
-        `(program (,vars) . ,x86*-instrs))]))
+        `(program ,vars . ,x86*-instrs))]))
