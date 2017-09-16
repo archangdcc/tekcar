@@ -36,6 +36,6 @@
   (match p
     [`(program (,vars ... ,live-after) . ,instrs)
       (let ([graph
-             (make-graph (append vars callee-regs caller-regs))])
+             (make-graph vars)])
         (build-graph graph live-after instrs)
         `(program (,@vars ,graph) . ,instrs))]))
