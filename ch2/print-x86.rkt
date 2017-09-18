@@ -13,11 +13,11 @@
     "main:\n"
     "\tpushq\t%rbp\n"
     "\tmovq\t%rsp, %rbp\n"
-      (if (equal? n 16)    ;; no extra space needed
+      (if (equal? n 0)    ;; no extra space needed
     "\n"
       (format
-    "\tsubq\t$~v, %rsp\n\n" ;; 8 for return address
-      (- n 16)))))         ;; and 8 for old rbp
+    "\tsubq\t$~v, %rsp\n\n"
+      (* (ceiling (/ n 2)) 16)))))
 
 (define (footer n)
   (string-append
@@ -26,11 +26,11 @@
     "\tcallq\t"
     func-pre
     "print_int\n"
-      (if (equal? n 16)
+      (if (equal? n 0)
     ""
       (format
     "\taddq\t$~v, %rsp\n"
-      (- n 16)))
+      (* (ceiling (/ n 2)) 16)))
     "\tmovq\t$0, %rax\n"
     "\tpopq\t%rbp\n"
     "\tretq\n"))
