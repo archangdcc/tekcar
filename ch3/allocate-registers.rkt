@@ -32,8 +32,8 @@
   (if (set-member? satur c)
     (min-color satur (+ 1 c)) c))
 
-(define (dsatur graph satur-table color-table)
-  (if (equal? satur-table (make-hash)) (void)
+(define (dsatur graph satur-table color-table max-color)
+  (if (equal? satur-table (make-hash)) max-color
     (let*
       ([v (max-vert satur-table)]
        [adj (adjacent graph v)]
@@ -46,7 +46,8 @@
             (if (hash-has-key? satur-table u)
               (set-add! (hash-ref satur-table u) c)
               (void))))
-        (dsatur graph satur-table color-table)))))
+        (dsatur graph satur-table color-table
+                (if (> c max-color) c max-color))))))
 
 (define (color-graph graph vars)
   (let
@@ -58,8 +59,8 @@
          (map (lambda (v) (cons v (mutable-set))) vars))])
     (begin
       (reg-satur graph vars satur-table)
-      (dsatur graph satur-table color-table)
-      color-table)))
+      (let ([max-color (dsatur graph satur-table color-table -1)])
+        (values color-table max-color)))))
 
 (define (alloc-reg color-table)
   (lambda (instr)
@@ -76,7 +77,8 @@
 (define (allocate-registers p)
   (match p
     [`(program (,vars ... ,graph) . ,instrs)
-      (let ([color-table
-              (color-graph graph vars)])
-        `(program ,(hash-count color-table)
+      (let-values
+        ([(color-table max-color)
+          (color-graph graph vars)])
+        `(program ,(+ 1 max-color)
           ,@(map (alloc-reg color-table) instrs)))]))
