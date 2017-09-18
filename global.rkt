@@ -2,7 +2,8 @@
 
 (provide func-pre init-sym gen-sym
          temp-reg return-reg
-         callee-regs caller-regs reg-num
+         callee-regs caller-regs
+         caller-num reg-num
          color->reg reg->color)
 
 (define sym-pool (void))
@@ -22,12 +23,14 @@
 
 ;; these are already define in utilities as caller/ee-save
 ;; but as sets.
-(define callee-regs
-  '(rcx rdx rsi rdi r8 r9 r10 r11))    ;; omit rax
 (define caller-regs
+  '(rcx rdx rsi rdi r8 r9 r10 r11))    ;; omit rax
+(define callee-regs
   '(rbx r12 r13 r14 r15))   ;; omit rsp rbp
 (define all-regs
-  (append callee-regs caller-regs))
+  (append caller-regs callee-regs))
+(define caller-num
+  (length caller-regs))
 (define reg-num
   (length all-regs))
 (define (color->reg color)

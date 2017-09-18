@@ -32,8 +32,8 @@
   (if (set-member? satur c)
     (min-color satur (+ 1 c)) c))
 
-(define (dsatur graph satur-table color-table max-color)
-  (if (equal? satur-table (make-hash)) max-color
+(define (dsatur graph satur-table color-table)
+  (if (equal? satur-table (make-hash)) (void)
     (let*
       ([v (max-vert satur-table)]
        [adj (adjacent graph v)]
@@ -46,8 +46,7 @@
             (if (hash-has-key? satur-table u)
               (set-add! (hash-ref satur-table u) c)
               (void))))
-        (dsatur graph satur-table color-table
-                (if (> c max-color) c max-color))))))
+        (dsatur graph satur-table color-table)))))
 
 (define (color-graph graph vars)
   (let
@@ -59,26 +58,40 @@
          (map (lambda (v) (cons v (mutable-set))) vars))])
     (begin
       (reg-satur graph vars satur-table)
-      (let ([max-color (dsatur graph satur-table color-table -1)])
-        (values color-table max-color)))))
+      (dsatur graph satur-table color-table)
+      color-table)))
 
-(define (alloc-reg color-table)
+(define (alloc-reg color-table used-callee used-stack)
   (lambda (instr)
     (match instr
       [`(var ,x)
         (let ([c (hash-ref color-table x)])
           (if (< c reg-num)
-            `(reg ,(color->reg c))
-            `(deref rbp ,(* -8 (- c (- reg-num 1))))))]
+            (let ([reg (color->reg c)])
+              (begin
+                (if (>= c caller-num)
+                  (set-add! used-callee reg)
+                  (void))
+                `(reg ,reg)))
+            (begin
+              (let ([idx (- c (- reg-num 1))])
+                (if (> idx used-stack)
+                  (set! used-stack idx)
+                  (void))
+                `(deref rbp ,(* -8 idx))))))]
       [`(,op ,args ...)
-       `(,op ,@(map (alloc-reg color-table) args))]
+       `(,op ,@(map (alloc-reg color-table used-callee used-stack) args))]
       [_ instr])))
 
 (define (allocate-registers p)
   (match p
     [`(program (,vars ... ,graph) . ,instrs)
-      (let-values
-        ([(color-table max-color)
-          (color-graph graph vars)])
-        `(program ,(+ 1 max-color)
-          ,@(map (alloc-reg color-table) instrs)))]))
+      (let*
+        ([color-table (color-graph graph vars)]
+         [used-callee (mutable-set)]
+         [used-stack 0]
+         [instrs
+           (map (alloc-reg color-table used-callee used-stack) instrs)])
+        `(program
+           (,(set->list used-callee) ,used-stack)
+           ,@instrs))]))
