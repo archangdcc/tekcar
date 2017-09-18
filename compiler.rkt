@@ -13,6 +13,7 @@
 
 (require "ch3/uncover-live.rkt")
 (require "ch3/build-interference.rkt")
+(require "ch3/build-move.rkt")
 (require "ch3/allocate-registers.rkt")
 (require "ch3/print-x86.rkt")
 
@@ -75,6 +76,7 @@
      ("select-instructions" ,select-instructions ,interp-x86)
      ("uncover-live" ,uncover-live ,interp-x86)
      ("build-interference" ,build-interference ,interp-x86)
+     ("build-move" ,build-move ,interp-x86)
      ("allocate-registers" ,allocate-registers ,interp-x86)
      ("patch-instructions" ,patch-instructions ,interp-x86)
      ("print-x86-ch3" ,print-x86-ch3 #f)

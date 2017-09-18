@@ -5,10 +5,10 @@
 
 (provide allocate-registers)
 
-(define (reg-satur graph vars satur-table)
+(define (reg-satur interf vars satur-table)
   (for-each
     (lambda (var)
-      (let ([adj (adjacent graph var)]
+      (let ([adj (adjacent interf var)]
             [satur (hash-ref satur-table var)])
         (set-for-each adj
           (lambda (r)
@@ -32,12 +32,40 @@
   (if (set-member? satur c)
     (min-color satur (+ 1 c)) c))
 
-(define (dsatur graph satur-table color-table)
+(define (max-bias bias)
+  (car
+    (foldl
+      (lambda (c tmp)
+        (match tmp
+          [`(,d ,m)
+            (let ([n (hash-ref bias c)])
+              (if (> n m) `(,c ,n) tmp))]))
+      `(null 0) (hash-keys bias))))
+
+(define (bias-color color-table mv satur)
+  (let ([bias (make-hash)]) ; color: number
+    (begin
+      (set-for-each mv
+        (lambda (v)
+          (if
+            (hash-has-key? color-table v)  ; this move-related var is already colored
+            (let ([c (hash-ref color-table v)])
+              (if (not (set-member? satur c))  ; and this color is valid
+                (hash-set! bias c (+ 1 (hash-ref bias c 0)))
+                (void)))
+            (void))))
+      (if (equal? bias (make-hash))  ; no luck
+        (min-color satur 0)  ; use the old method, find the minimum valid color
+        (max-bias bias)))))
+
+(define (dsatur interf move satur-table color-table)
   (if (equal? satur-table (make-hash)) (void)
     (let*
       ([v (max-vert satur-table)]
-       [adj (adjacent graph v)]
-       [c (min-color (hash-ref satur-table v) 0)])
+       [adj (adjacent interf v)]
+       [satur (hash-ref satur-table v)]
+       [mv (hash-ref move v)]
+       [c (bias-color color-table mv satur)])
       (begin
         (hash-remove! satur-table v)
         (hash-set! color-table v c)
@@ -46,19 +74,17 @@
             (if (hash-has-key? satur-table u)
               (set-add! (hash-ref satur-table u) c)
               (void))))
-        (dsatur graph satur-table color-table)))))
+        (dsatur interf move satur-table color-table)))))
 
-(define (color-graph graph vars)
+(define (color-graph interf move vars)
   (let
     ([satur-table
        (make-hash
          (map (lambda (v) (cons v (mutable-set))) vars))]
-     [color-table
-       (make-hash
-         (map (lambda (v) (cons v (mutable-set))) vars))])
+     [color-table (make-hash)])
     (begin
-      (reg-satur graph vars satur-table)
-      (dsatur graph satur-table color-table)
+      (reg-satur interf vars satur-table)
+      (dsatur interf move satur-table color-table)
       color-table)))
 
 (define (alloc-reg color-table used-callee used-stack)
@@ -85,9 +111,9 @@
 
 (define (allocate-registers p)
   (match p
-    [`(program (,vars ... ,graph) . ,instrs)
+    [`(program (,vars ... ,interf ,move) . ,instrs)
       (let*
-        ([color-table (color-graph graph vars)]
+        ([color-table (color-graph interf move vars)]
          [used-callee (mutable-set)]
          [used-stack (box 0)]
          [instrs
