@@ -13,6 +13,7 @@
 
 (require "ch3/uncover-live.rkt")
 (require "ch3/build-interference.rkt")
+(require "ch3/allocate-registers.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -73,4 +74,5 @@
      ("select-instructions" ,select-instructions ,interp-x86)
      ("uncover-live" ,uncover-live ,interp-x86)
      ("build-interference" ,build-interference ,interp-x86)
+     ("allocate-registers" ,allocate-registers ,interp-x86)
      ))

@@ -16,7 +16,6 @@
 
 (interp-tests "integers and variables" #f r1-passes interp-scheme "r1" (range 1 30))
 (display "\e[0;34;42mr1-passes: interp tests passed!\e[0m") (newline)
-
 (compiler-tests "integers and variables" #f r1-passes "r1" (range 1 30))
 (display "\e[0;34;42mr1-final: compile tests passed!\e[0m") (newline)
 

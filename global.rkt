@@ -1,7 +1,9 @@
 #lang racket
 
 (provide func-pre init-sym gen-sym
-         temp-reg return-reg callee-regs caller-regs)
+         temp-reg return-reg
+         callee-regs caller-regs reg-num
+         color->reg reg->color)
 
 (define sym-pool (void))
 (define (init-sym)
@@ -22,6 +24,13 @@
 ;; but as sets.
 (define callee-regs
   '(rcx rdx rsi rdi r8 r9 r10 r11))    ;; omit rax
-
 (define caller-regs
   '(rbx r12 r13 r14 r15))   ;; omit rsp rbp
+(define all-regs
+  (append callee-regs caller-regs))
+(define reg-num
+  (length all-regs))
+(define (color->reg color)
+  (list-ref all-regs color))
+(define (reg->color reg)
+  (index-of all-regs reg))
