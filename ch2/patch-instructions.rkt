@@ -5,6 +5,8 @@
 
 (define (patch-instr instr tail)
   (match instr
+    [`(movq (deref ,reg ,offset) (deref ,reg ,offset)) tail]
+    [`(movq (reg ,reg) (reg ,reg)) tail]
     [`(,op (deref ,reg₁ ,offset₁) (deref ,reg₂ ,offset₂))
      `((movq (deref ,reg₁ ,offset₁) (reg ,temp-reg))
        (,op (reg ,temp-reg) (deref ,reg₂ ,offset₂)) . ,tail)]
