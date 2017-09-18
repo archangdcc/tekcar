@@ -73,10 +73,10 @@
                   (set-add! used-callee reg)
                   (void))
                 `(reg ,reg)))
-            (begin
-              (let ([idx (- c (- reg-num 1))])
-                (if (> idx used-stack)
-                  (set! used-stack idx)
+            (let ([idx (- c (- reg-num 1))])
+              (begin
+                (if (> idx (unbox used-stack))
+                  (set-box! used-stack idx)
                   (void))
                 `(deref rbp ,(* -8 idx))))))]
       [`(,op ,args ...)
@@ -89,9 +89,9 @@
       (let*
         ([color-table (color-graph graph vars)]
          [used-callee (mutable-set)]
-         [used-stack 0]
+         [used-stack (box 0)]
          [instrs
            (map (alloc-reg color-table used-callee used-stack) instrs)])
         `(program
-           (,(set->list used-callee) ,used-stack)
+           (,(set->list used-callee) ,(unbox used-stack))
            ,@instrs))]))
