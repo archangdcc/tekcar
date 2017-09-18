@@ -1,3 +1,4 @@
 a.out*
 runtime.o
 tests/*.s
+*.swp
