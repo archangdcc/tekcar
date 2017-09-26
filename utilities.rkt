@@ -334,14 +334,14 @@
 	  (printf "    Name | Type Check Fails | Run Fails | Type Check Failed Tests | Run Failed Tests\n")
 	  (for ([suite-results (in-list info)])
 	    (match suite-results
-              [`(,test-family ,suite-type-fails ,suite-fails ,suite-type-fail-names ,suite-fail-names) 
-		  (printf "      ~a | ~a | ~a | ~a | ~a\n\n" test-family suite-type-fails suite-type-fail-names suite-fails suite-fail-names)])))
+        [`(,test-family ,suite-type-fails ,suite-fails ,suite-type-fail-names ,suite-fail-names) 
+		      (printf "      ~a | ~a | ~a | ~a | ~a\n\n" test-family suite-type-fails suite-type-fail-names suite-fails suite-fail-names)])))
 	(begin
 	  (printf "\nFailures by suite : \n")
 	  (printf "  NONE..\n")))
-      (printf "Type check fails : ~a\n" typ-fail)
-      (printf "Run fails  : ~a\n" fail)
-      (printf "Total passed : ~a\n\n" suc))
+  (printf "Type check fails : ~a\n" typ-fail)
+  (printf "Run fails  : ~a\n" fail)
+  (printf "Total passed : ~a\n\n" suc))
     (begin
       (printf "\n\nInterpreter Results \n")
       (printf "===================== \n")
@@ -350,10 +350,9 @@
           (printf "Failures by suite : \n")  
           (printf "     Name | Fails | Tests \n")
           (for ([suite-results (in-list info)])
-	    (let ([suite-name (car suite-results)]
-	          [suite-fails (cadr suite-results)]
-	          [suite-fail-names (cddr suite-results)])
-	        (printf "    ~a | ~a | ~a\n\n" suite-name suite-fails suite-fail-names))))
+            (match suite-results
+                    [`(,test-family ,suite-fails ,suite-fail-names)
+	        (printf "       ~a | ~a | ~a\n\n" test-family suite-fails suite-fail-names)])))
         (begin
           (printf "\nFailures by suite : \n")
           (printf "  NONE..\n"))) 
@@ -382,15 +381,15 @@
   (printf "----------------------\n")
   (define checker (check-passes name typechecker passes initial-interp))
   (let ([suc  0]
-	[fail 0])
+	      [fail 0])
     (let ((res 
 	    (let loop ([info '()]
 	               [tests suite-tests])
               (if (not (empty? tests))
-                (let ([test-family (caar suite-tests)]
-  	              [test-nums   (cadar suite-tests)]
-	              [suite-fails 0]
-	              [suite-fail-names '()])
+                (let ([test-family (caar tests)]
+  	                  [test-nums   (cadar tests)]
+	                    [suite-fails 0]
+	                    [suite-fail-names '()])
                   (for ([test-number (in-list test-nums)])
                     (let ([test-name (format "~a_~a" test-family test-number)])
                       (debug "utilities/interp-test" test-name)
@@ -425,19 +424,19 @@
   (printf "\nRunning Compiler\n")
   (printf "-------------------\n")
   (let ([suc  0] 
-	[fail 0] 
-	[type-fails 0])
+	      [fail 0] 
+	      [type-fails 0])
     (let ([res 
   	  (let loop ([info '()] 
-		     [tests suite-tests])
+		             [tests suite-tests])
             (if (not (empty? tests))
 	      (begin
-              (let ([test-family (caar suite-tests)] 
-		    [test-nums (cadar suite-tests)] 
-		    [suite-type-fails 0]
-    	            [suite-type-fail-names '()] 
-		    [suite-fails 0] 
-		    [suite-fail-names '()])
+              (let ([test-family (caar tests)] 
+		                [test-nums (cadar tests)] 
+		                [suite-type-fails 0]
+    	              [suite-type-fail-names '()] 
+		                [suite-fails 0] 
+		                [suite-fail-names '()])
                 (for ([test-number (in-list test-nums)])
                   (with-handlers 
     	            ([exn:fail? (lambda (e) (begin
