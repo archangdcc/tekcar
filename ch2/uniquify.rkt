@@ -20,5 +20,6 @@
       )))
 
 (define (uniquify e)
-  (init-sym)
-  ((uniq '()) e))
+  (begin
+    (init-sym)
+    ((uniq '()) e)))

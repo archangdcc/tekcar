@@ -41,5 +41,4 @@
           (append* vars)))]))
 
 (define (flatten e)
-  (init-sym)
   (flat e))
