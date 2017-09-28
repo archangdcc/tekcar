@@ -1,16 +1,14 @@
-;; A reduction fo s3_13.rkt
-
-#;
-(define (minus [n : Integer] [m : Integer]) : Integer
-  (+ n (- m)))
-
-(define (zero [x : Integer]) : (Vector)
-  (if (eq? x 0)
-      (vector)
-      (zero (+ (vector-ref (vector x) 0) (- 1)))))
-
-(vector-ref (vector (zero 1) (zero 2) 42) 2)
-
-
-
-
+(let ([v0 (vector)])
+  (let ([v1 (vector 42 v0)])
+    (let ([v2 (vector v1 42 v0)])
+      (let ([v3 (vector v2 v1 42 v0)])
+        (let ([v4 (vector v3 v2 v1 42 v0)])
+          (let ([v5 (vector v4 v3 v2 v1 42 v0)])
+            (let ([v6 (vector v5 v4 v3 v2 v1 42 v0)])
+              (let ([v7 (vector v6 v5 v4 v3 v2 v1 42 v0)])      
+                (let ([v8 (vector v7 v6 v5 v4 v3 v2 v1 42 v0)])
+                  (let ([v9 (vector v8 v7 v6 v5 v4 v3 v2 v1 42 v0)])
+                    (let ([v10 (vector v9 v8 v7 v6 v5 v4 v3 v2 v1 42 v0)])
+                      (let ([v11 (vector v10 v9 v8 v7 v6 v5 v4 v3 v2 v1 42 v0)])
+                        (let ([v12 (vector v11 v10 v9 v8 v7 v6 v5 v4 v3 v2 v1 42 v0)])
+                          (vector-ref v12 11))))))))))))))

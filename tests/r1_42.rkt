@@ -1,3 +1,4 @@
-(if (and (eq? (read) 0) (eq? (read) 1))
-    0
-    42)
+(let ([x 30])
+  (let ([z (+ x 14)])
+    (let ([y 2])
+      (+ z (- y)))))

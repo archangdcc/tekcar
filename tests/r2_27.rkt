@@ -1,2 +1,1 @@
-(let ([v (vector 0)])
-  (if (eq? v v) 42 777))
+(if #f 0 42)

@@ -1,2 +1,3 @@
-;; This is precisely the running example in chapter 5 of the book.
-(vector-ref (vector-ref (vector (vector 42)) 0) 0)
+(if (eq? 1 0)
+    777
+    42)

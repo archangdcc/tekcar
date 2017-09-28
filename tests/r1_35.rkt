@@ -1,1 +1,4 @@
-(if (eq? (read) 0) 42 777)
+(let ([x1 (read)])
+  (let ([x2 (read)])
+    (+ (+ x1 x2)
+       42)))

@@ -1,3 +1,1 @@
-(let ([dummy (vector 0)])
-    (let ([f (vector (vector 1 2 (vector #t)) (vector dummy))])
-      f))
+(if (eq? 0 (read)) (read) 777)

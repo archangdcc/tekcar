@@ -1,5 +1,3 @@
-(let ([x (read)])
-  (let ([y (read)])
-    (if (eq? x y)
-	42
-	777)))
+(let ([x 20])
+  (let ([y 22])
+    (+ x y)))

@@ -1,1 +1,1 @@
-(vector 42)
+(if (eq? (read) 0) 42 777)

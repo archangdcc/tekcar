@@ -1,1 +1,6 @@
-(vector-ref (vector-ref (vector (vector 42)) 0) 0)
+(let ([x (read)])
+  (let ([y (read)])
+    (let ([z (eq? x y)])
+      (if z
+	  42
+	  777))))

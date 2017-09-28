@@ -1,5 +1,2 @@
-(let ([x (read)])
-  (let ([y (read)])
-    (if (eq? x y)
-	42
-	0)))
+(let ([x 41]) 
+  (+ x 1))

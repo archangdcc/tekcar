@@ -1,9 +1,14 @@
 
-(define (id [x : Integer]) : Integer x)
+;; This test is supose to keep everything alive in the heap
+;; causing allocation that has to check forwarding pointers.
 
-(define (f [n : Integer] [clos : (Vector (Integer -> Integer) (Vector Integer))]) : Integer
-  (if (eq? n 100)
-      ((vector-ref clos 0) (vector-ref (vector-ref clos 1) 0))
-      (f (+ n 1) (vector (vector-ref clos 0) (vector-ref clos 1)))))
-
-(f 0 (vector id (vector 42)))
+(let ([v0 (vector 42)])
+  (let ([v1 (vector v0 v0)])
+    (let ([v2 (vector v1 v1 v1 v1)])
+      (let ([v3 (vector v2 v2 v2 v2 v2 v2 v2 v2)])
+        (let ([v4 (vector v3 v3 v3 v3 v3 v3 v3 v3 v3 v3 v3 v3 v3 v3 v3 v3)])
+          (vector-ref
+           (vector-ref
+            (vector-ref
+             (vector-ref
+              (vector-ref v4 4) 3) 2) 1) 0))))))

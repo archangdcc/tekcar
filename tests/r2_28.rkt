@@ -1,3 +1,5 @@
-(let ([v1 (vector 0)])
-  (let ([v2 (vector 0)])
-    (if (eq? v1 v2) 777 42)))
+(let ([x (read)])
+  (let ([y (read)])
+    (if (eq? x y)
+	42
+	0)))

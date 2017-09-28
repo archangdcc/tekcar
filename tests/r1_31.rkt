@@ -1,1 +1,3 @@
-(if (and #t #f) 777 42)
+(let ([x (read)])
+  (let ([y (read)])
+    (+ x (- y))))

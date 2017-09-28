@@ -1,9 +1,4 @@
- (define (even [x : Integer]) : Boolean
-   (if (eq? x 0) #t
-       (odd (+ x (- 1)))))
- (define (odd [x : Integer]) : Boolean
-   (if (eq? x 0) #f
-       (even (+ x (- 1)))))
- (if (even 2)
-     42
-     0)
+(let ([a (vector (vector 777) 98)])
+  (let ([b (vector (vector-ref a 0) 99 100)])
+    (let ([_ (vector-set! (vector-ref b 0) 0 42)])
+      (vector-ref (vector-ref a 0) 0))))

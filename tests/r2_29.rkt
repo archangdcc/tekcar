@@ -1,5 +1,5 @@
-(let ([t (vector 40 #t (vector 2))])
-  (if (vector-ref t 1)
-      (+ (vector-ref t 0)
-         (vector-ref (vector-ref t 2) 0))
-      44))
+(let ([x (read)])
+  (let ([y (read)])
+    (if (eq? x y)
+	42
+	777)))

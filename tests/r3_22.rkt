@@ -1,3 +1,1 @@
- (define (id [f : (Integer -> Integer)]) : (Integer -> Integer) f)
- (define (inc [x : Integer]) : Integer (+ x 1))
- ((id inc) 41)
+(vector-ref (vector-ref (vector (vector 42)) 0) 0)
