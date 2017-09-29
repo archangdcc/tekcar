@@ -17,10 +17,14 @@
 (require "ch3/allocate-registers.rkt")
 (require "ch3/print-x86.rkt")
 
+(require "ch4/uniquify.rkt")
+(require "ch4/flatten.rkt")
+
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
 (provide r1-passes)
 (provide r1-passes-ch3)
+(provide r2-passes)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
@@ -80,4 +84,9 @@
      ("allocate-registers" ,allocate-registers ,interp-x86)
      ("patch-instructions" ,patch-instructions ,interp-x86)
      ("print-x86-ch3" ,print-x86-ch3 #f)
+     ))
+
+(define r2-passes
+  `( ("uniquify" ,uniquify-R2 ,interp-scheme)
+     ("flatten" ,flatten-R2 ,interp-C)
      ))
