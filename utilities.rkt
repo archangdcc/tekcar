@@ -7,6 +7,7 @@
          label-name lookup  make-dispatcher assert
          read-fixnum read-program 
 	 compile compile-file check-passes interp-tests compiler-tests
+	 interp-test-suite compiler-test-suite
 	 make-graph add-edge adjacent vertices print-dot
 	 general-registers registers-for-alloc caller-save callee-save
 	 arg-registers register->color registers align
@@ -322,6 +323,92 @@
               )
             #f)))))
 
+
+;;;;;;;;;;;; Test Driver Functions ;;;;;;;;;;;;;;
+
+;; The interp-tests function takes a compiler name (a string), a
+;; typechecker (see the comment for check-passes) a description of the
+;; passes (ditto) a test family name (a string), and a list of test
+;; numbers, and runs the compiler passes and the interpreters to check
+;; whether the passes correct.
+;;
+;; This function assumes that the subdirectory "tests" has a bunch of
+;; Scheme programs whose names all start with the family name,
+;; followed by an underscore and then the test number, ending in
+;; ".rkt". Also, for each Scheme program there is a file with the same
+;; number except that it ends with ".in" that provides the input for
+;; the Scheme program. If any program should not pass typechecking,
+;; then there is a file with the name number (whose contents are
+;; ignored) that ends in ".tyerr".
+
+(define (interp-tests name typechecker passes initial-interp test-family test-nums)
+  (define checker (check-passes name typechecker passes initial-interp))
+  (for ([test-number (in-list test-nums)])
+    (let ([test-name (format "~a_~a" test-family test-number)])
+      (debug "utilities/interp-test" test-name)
+      (checker test-name))))
+
+;; The compiler-tests function takes a compiler name (a string), a
+;; typechecker (see the comment for check-passes) a description of the
+;; passes (ditto), a test family name (a string), and a list of test
+;; numbers (see the comment for interp-tests), and runs the compiler
+;; to generate x86 (a ".s" file) and then runs gcc to generate machine
+;; code, unless a type error is detected. It runs the machine code and
+;; stores the result. If the test file has a corresponding .res file,
+;; the result is compared against its contents; otherwise, the result
+;; is compared against 42. If a type error is detected, it will check
+;; if a .tyerr file exists, and report an error if not. It will do the
+;; same if a .tyerr file exists but the typechecker does not report an
+;; error.
+
+(define (compiler-tests name typechecker passes test-family test-nums)
+  (define compiler (compile-file typechecker passes))
+  (debug "compiler-tests starting" '())
+  (for ([test-number (in-list test-nums)])
+    (define test-name  (format "~a_~a" test-family test-number))
+    (debug "compiler-tests, testing:" test-name)
+    (define type-error-expected (file-exists? (format "tests/~a.tyerr" test-name)))
+    (define typechecks (compiler (format "tests/~a.rkt" test-name)))
+    (if (and (not typechecks) (not type-error-expected))
+        (error (format "test ~a failed, unexpected type error" test-name))
+        '())
+    (if typechecks
+        (if (system (format "gcc -g -std=c99 runtime.o tests/~a.s" test-name))
+            (void) (exit))
+        '())
+    (let* ([input (if (file-exists? (format "tests/~a.in" test-name))
+                      (format " < tests/~a.in" test-name)
+                      "")]
+           [output (if (file-exists? (format "tests/~a.res" test-name))
+                       (call-with-input-file
+                         (format "tests/~a.res" test-name)
+                         (lambda (f) (read-line f)))
+                       "42")]
+           [progout (if typechecks (process (format "./a.out~a" input)) 'type-error)]
+           )
+      ;; process returns a list, it's first element is stdout
+      (match progout
+        ['type-error (display test-name) (display " ") (flush-output)] ;already know we don't have a false positive
+        [`(,in1 ,out ,_ ,in2 ,control-fun)
+         (if type-error-expected
+             (error (format "test ~a passed typechecking but should not have." test-name)) '())
+         (control-fun 'wait)
+         (cond [(eq? (control-fun 'status) 'done-ok)
+                (let ([result (read-line (car progout))])
+                  (if (eq? (string->symbol result) (string->symbol output))
+                      (begin (display test-name)(display " ")(flush-output))
+                      (error (format "test ~a failed, output: ~a, expected ~a"
+                                     test-name result output))))]
+               [else
+                (error
+                 (format "test ~a error in x86 execution, exit code: ~a"
+                         test-name (control-fun 'exit-code)))])
+         (close-input-port in1)
+         (close-input-port in2)
+         (close-output-port out)])
+      )))
+
+
 ;; Prints results from an interpreter or compiler run
 (define (print-results suc fail typ-fail info compiler?)
   (if compiler?
@@ -360,11 +447,13 @@
       (printf "Total passed   : ~a\n\n" suc))))
 
 
-;; The interp-tests function takes a compiler name (a string), a
+;;;; Run multiple test suites at once and report statistics
+
+;; The interp-test-suite function takes a compiler name (a string), a
 ;; typechecker (see the comment for check-passes) a description of the
-;; passes (ditto) a test family name (a string), and a list of test
-;; numbers, and runs the compiler passes and the interpreters to check
-;; whether the passes correct.
+;; passes (ditto) a test family name (a string), and a list of tests
+;; corresponding to one or more test suites, and runs the compiler passes
+;; and the interpreters to check whether the passes correct.
 ;; 
 ;; This function assumes that the subdirectory "tests" has a bunch of
 ;; Scheme programs whose names all start with the family name,
@@ -375,21 +464,21 @@
 ;; then there is a file with the name number (whose contents are
 ;; ignored) that ends in ".tyerr".
 
-(define (interp-tests name typechecker passes initial-interp suite-tests)
+(define (interp-test-suite name typechecker passes initial-interp suite-tests)
   (debug "interp-tests starting" '())
   (printf "\nRunning Interpreter\n")
   (printf "----------------------\n")
   (define checker (check-passes name typechecker passes initial-interp))
   (let ([suc  0]
-	      [fail 0])
+	[fail 0])
     (let ((res 
 	    (let loop ([info '()]
 	               [tests suite-tests])
               (if (not (empty? tests))
                 (let ([test-family (caar tests)]
-  	                  [test-nums   (cadar tests)]
-	                    [suite-fails 0]
-	                    [suite-fail-names '()])
+  	              [test-nums   (cadar tests)]
+	              [suite-fails 0]
+	              [suite-fail-names '()])
                   (for ([test-number (in-list test-nums)])
                     (let ([test-name (format "~a_~a" test-family test-number)])
                       (debug "utilities/interp-test" test-name)
@@ -405,38 +494,38 @@
             info))))
          (print-results suc fail 0 res #f))))
 
-;; The compiler-tests function takes a compiler name (a string), a
+;; The compiler-test-suite function takes a compiler name (a string), a
 ;; typechecker (see the comment for check-passes) a description of the
-;; passes (ditto), a test family name (a string), and a list of test
-;; numbers (see the comment for interp-tests), and runs the compiler
-;; to generate x86 (a ".s" file) and then runs gcc to generate machine
-;; code, unless a type error is detected. It runs the machine code and
-;; stores the result. If the test file has a corresponding .res file,
+;; passes (ditto), a test family name (a string), list of tests
+;; corresponding to one or more test suites (see the comment for interp-tests), 
+;; and runs the compiler to generate x86 (a ".s" file) and then runs gcc to 
+;; generate machine code, unless a type error is detected. It runs the machine 
+;; code and stores the result. If the test file has a corresponding .res file,
 ;; the result is compared against its contents; otherwise, the result
 ;; is compared against 42. If a type error is detected, it will check
 ;; if a .tyerr file exists, and report an error if not. It will do the
 ;; same if a .tyerr file exists but the typechecker does not report an
 ;; error.
 
-(define (compiler-tests name typechecker passes suite-tests)
+(define (compiler-test-suite name typechecker passes suite-tests)
   (define compiler (compile-file typechecker passes))
   (debug "compiler-tests starting" '())
   (printf "\nRunning Compiler\n")
   (printf "-------------------\n")
   (let ([suc  0] 
-	      [fail 0] 
-	      [type-fails 0])
+	[fail 0] 
+	[type-fails 0])
     (let ([res 
   	  (let loop ([info '()] 
-		             [tests suite-tests])
+		     [tests suite-tests])
             (if (not (empty? tests))
 	      (begin
               (let ([test-family (caar tests)] 
-		                [test-nums (cadar tests)] 
-		                [suite-type-fails 0]
-    	              [suite-type-fail-names '()] 
-		                [suite-fails 0] 
-		                [suite-fail-names '()])
+		    [test-nums (cadar tests)] 
+		    [suite-type-fails 0]
+    	            [suite-type-fail-names '()] 
+		    [suite-fails 0] 
+		    [suite-fail-names '()])
                 (for ([test-number (in-list test-nums)])
                   (with-handlers 
     	            ([exn:fail? (lambda (e) (begin
