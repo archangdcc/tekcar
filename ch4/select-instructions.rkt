@@ -8,8 +8,7 @@
 (define (select-arg arg)
   (cond
     [(integer? arg) `(int ,arg)]
-    [(eq? arg #t) `(int 1)]
-    [(eq? arg #f) `(int 0)]
+    [(boolean? arg) (if arg `(int 1) `(int 0))]
     [(symbol? arg) `(var ,arg)]))
 
 (define (cc cmp)
