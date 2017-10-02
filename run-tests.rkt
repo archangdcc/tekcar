@@ -30,9 +30,9 @@
 
 
 (debug-level 2)
-(interp-tests "control flow" typecheck-R2 r2-passes interp-scheme "r2" (range 1 24))
+(interp-tests "control flow" typecheck-R2 r2-passes interp-scheme "r2" (range 1 26))
 (display "\e[0;34;42mcontrol flow passed!\e[0m") (newline)
 (debug-level 0)
-(compiler-tests "control flow" typecheck-R2 r2-passes "r2" (range 1 24))
+(compiler-tests "control flow" typecheck-R2 r2-passes "r2" (range 1 26))
 (newline)
 (display "\e[0;34;42mcontrol flow: compile tests passed!\e[0m") (newline)
