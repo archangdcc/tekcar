@@ -12,12 +12,9 @@
       [(? fixnum?)  'Integer]
       [(? boolean?) 'Boolean]
       [(? symbol?)
-       (begin
-         (print env)
-       (lookup e env))]
+       (lookup e env)]
       [`(read) 'Integer]
       [`(let ([,x ,(app (typecheck env) T)]) ,body)
-        ;(begin (print `((,x . ,T) . ,env))
         ((typecheck `((,x . ,T) . ,env)) body)]
       [`(- ,(app (typecheck env) T))
         (match T
