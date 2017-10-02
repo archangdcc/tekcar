@@ -19,6 +19,11 @@
 
 (require "ch4/uniquify.rkt")
 (require "ch4/flatten.rkt")
+(require "ch4/select-instructions.rkt")
+(require "ch4/uncover-live.rkt")
+(require "ch4/build-interference.rkt")
+(require "ch4/build-move.rkt")
+(require "ch4/allocate-registers.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -89,4 +94,9 @@
 (define r2-passes
   `( ("uniquify" ,uniquify-R2 ,interp-scheme)
      ("flatten" ,flatten-R2 ,interp-C)
+     ("select-instructions" ,select-instructions-R2 ,interp-x86)
+     ("uncover-live" ,uncover-live-R2 ,interp-x86)
+     ("build-interference" ,build-interference-R2 ,interp-x86)
+     ("build-move" ,build-move-R2 ,interp-x86)
+     ("allocate-registers" ,allocate-registers-R2 ,interp-x86)
      ))
