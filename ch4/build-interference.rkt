@@ -10,9 +10,9 @@
     (lambda (live instr)
       (match instr
         [`(if (,cmp ,x ,y) ,thns ,thn-live ,elss ,els-live)
-          (begin
-            (build-graph graph thn-live thns)
-            (build-graph graph els-live elss)
+          (let
+            ([thns (build-graph graph thn-live thns)]
+             [elss (build-graph graph els-live elss)])
             `(if (,cmp ,x ,y) ,thns ,elss))]
         [`(cmpq ,x ,y) instr]
         [`(movq (var ,y) (var ,x))
