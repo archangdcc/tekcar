@@ -7,6 +7,7 @@
          label-name lookup  make-dispatcher assert
          read-fixnum read-program 
 	 compile compile-file check-passes interp-tests compiler-tests
+	 interp-test-suite compiler-test-suite
 	 make-graph add-edge adjacent vertices print-dot
 	 general-registers registers-for-alloc caller-save callee-save
 	 arg-registers register->color registers align
@@ -317,16 +318,20 @@
                      (newline out-file)
                      #t]
                     [else
+                     (printf "\ncompiler did not produce x86 output\n\n")
                      (error "compiler did not produce x86 output")])
               )
             #f)))))
+
+
+;;;;;;;;;;;; Test Driver Functions ;;;;;;;;;;;;;;
 
 ;; The interp-tests function takes a compiler name (a string), a
 ;; typechecker (see the comment for check-passes) a description of the
 ;; passes (ditto) a test family name (a string), and a list of test
 ;; numbers, and runs the compiler passes and the interpreters to check
 ;; whether the passes correct.
-;; 
+;;
 ;; This function assumes that the subdirectory "tests" has a bunch of
 ;; Scheme programs whose names all start with the family name,
 ;; followed by an underscore and then the test number, ending in
@@ -365,7 +370,7 @@
     (define type-error-expected (file-exists? (format "tests/~a.tyerr" test-name)))
     (define typechecks (compiler (format "tests/~a.rkt" test-name)))
     (if (and (not typechecks) (not type-error-expected))
-        (error (format "test ~a failed, unexpected type error" test-name)) 
+        (error (format "test ~a failed, unexpected type error" test-name))
         '())
     (if typechecks
         (if (system (format "gcc -g -std=c99 runtime.o tests/~a.s" test-name))
@@ -392,16 +397,207 @@
                 (let ([result (read-line (car progout))])
                   (if (eq? (string->symbol result) (string->symbol output))
                       (begin (display test-name)(display " ")(flush-output))
-                      (error (format "test ~a failed, output: ~a, expected ~a" 
+                      (error (format "test ~a failed, output: ~a, expected ~a"
                                      test-name result output))))]
                [else
                 (error
-                 (format "test ~a error in x86 execution, exit code: ~a" 
+                 (format "test ~a error in x86 execution, exit code: ~a"
                          test-name (control-fun 'exit-code)))])
          (close-input-port in1)
          (close-input-port in2)
          (close-output-port out)])
       )))
+
+
+;; Prints results from an interpreter or compiler run
+(define (print-results suc fail typ-fail info compiler?)
+  (if compiler?
+    (begin 
+      (printf "\n\nCompiler Results \n")
+      (printf "================== \n")
+      (if (> fail 0)
+	(begin
+	  (printf "\nFailures by suite : \n")
+	  (printf "    Name | Type Check Fails | Run Fails | Type Check Failed Tests | Run Failed Tests\n")
+	  (for ([suite-results (in-list info)])
+	    (match suite-results
+        [`(,test-family ,suite-type-fails ,suite-fails ,suite-type-fail-names ,suite-fail-names) 
+		      (printf "      ~a | ~a | ~a | ~a | ~a\n\n" test-family suite-type-fails suite-type-fail-names suite-fails suite-fail-names)])))
+	(begin
+	  (printf "\nFailures by suite : \n")
+	  (printf "  NONE..\n")))
+  (printf "Type check fails : ~a\n" typ-fail)
+  (printf "Run fails  : ~a\n" fail)
+  (printf "Total passed : ~a\n\n" suc))
+    (begin
+      (printf "\n\nInterpreter Results \n")
+      (printf "===================== \n")
+      (if (> fail 0) 
+        (begin
+          (printf "Failures by suite : \n")  
+          (printf "     Name | Fails | Tests \n")
+          (for ([suite-results (in-list info)])
+            (match suite-results
+                    [`(,test-family ,suite-fails ,suite-fail-names)
+	        (printf "       ~a | ~a | ~a\n\n" test-family suite-fails suite-fail-names)])))
+        (begin
+          (printf "\nFailures by suite : \n")
+          (printf "  NONE..\n"))) 
+      (printf "Total fails    : ~a\n" fail)
+      (printf "Total passed   : ~a\n\n" suc))))
+
+
+;;;; Run multiple test suites at once and report statistics
+
+;; The interp-test-suite function takes a compiler name (a string), a
+;; typechecker (see the comment for check-passes) a description of the
+;; passes (ditto) a test family name (a string), and a list of tests
+;; corresponding to one or more test suites, and runs the compiler passes
+;; and the interpreters to check whether the passes correct.
+;; 
+;; This function assumes that the subdirectory "tests" has a bunch of
+;; Scheme programs whose names all start with the family name,
+;; followed by an underscore and then the test number, ending in
+;; ".rkt". Also, for each Scheme program there is a file with the same
+;; number except that it ends with ".in" that provides the input for
+;; the Scheme program. If any program should not pass typechecking,
+;; then there is a file with the name number (whose contents are
+;; ignored) that ends in ".tyerr".
+
+(define (interp-test-suite name typechecker passes initial-interp suite-tests)
+  (debug "interp-tests starting" '())
+  (printf "\nRunning Interpreter\n")
+  (printf "----------------------\n")
+  (define checker (check-passes name typechecker passes initial-interp))
+  (let ([suc  0]
+	[fail 0])
+    (let ((res 
+	    (let loop ([info '()]
+	               [tests suite-tests])
+              (if (not (empty? tests))
+                (let ([test-family (caar tests)]
+  	              [test-nums   (cadar tests)]
+	              [suite-fails 0]
+	              [suite-fail-names '()])
+                  (for ([test-number (in-list test-nums)])
+                    (let ([test-name (format "~a_~a" test-family test-number)])
+                      (debug "utilities/interp-test" test-name)
+                      (with-handlers 
+	                ([exn:fail? (lambda (x) 
+	  	  	      (begin 
+                                (set! suite-fail-names (append suite-fail-names `(,test-number)))
+                                (set! suite-fails (+ suite-fails 1))
+			        (set! fail (+ fail 1))))])
+                      (checker test-name)
+	              (set! suc (+ suc 1)))))
+               (loop (append info `((,test-family ,suite-fails ,suite-fail-names))) (cdr tests)))
+            info))))
+         (print-results suc fail 0 res #f))))
+
+;; The compiler-test-suite function takes a compiler name (a string), a
+;; typechecker (see the comment for check-passes) a description of the
+;; passes (ditto), a test family name (a string), list of tests
+;; corresponding to one or more test suites (see the comment for interp-tests), 
+;; and runs the compiler to generate x86 (a ".s" file) and then runs gcc to 
+;; generate machine code, unless a type error is detected. It runs the machine 
+;; code and stores the result. If the test file has a corresponding .res file,
+;; the result is compared against its contents; otherwise, the result
+;; is compared against 42. If a type error is detected, it will check
+;; if a .tyerr file exists, and report an error if not. It will do the
+;; same if a .tyerr file exists but the typechecker does not report an
+;; error.
+
+(define (compiler-test-suite name typechecker passes suite-tests)
+  (define compiler (compile-file typechecker passes))
+  (debug "compiler-tests starting" '())
+  (printf "\nRunning Compiler\n")
+  (printf "-------------------\n")
+  (let ([suc  0] 
+	[fail 0] 
+	[type-fails 0])
+    (let ([res 
+  	  (let loop ([info '()] 
+		     [tests suite-tests])
+            (if (not (empty? tests))
+	      (begin
+              (let ([test-family (caar tests)] 
+		    [test-nums (cadar tests)] 
+		    [suite-type-fails 0]
+    	            [suite-type-fail-names '()] 
+		    [suite-fails 0] 
+		    [suite-fail-names '()])
+                (for ([test-number (in-list test-nums)])
+                  (with-handlers 
+    	            ([exn:fail? (lambda (e) (begin
+                        	               (set! suite-fail-names (append suite-fail-names `(,test-number)))
+	                                       (set! suite-fails (+ suite-fails 1))
+	                                       (set! fail (+ fail 1))))]) 
+                  (define test-name  (format "~a_~a" test-family test-number))
+                  (debug "compiler-tests, testing:" test-name)
+                  (define type-error-expected (file-exists? (format "tests/~a.tyerr" test-name)))
+                  (define typechecks (compiler (format "tests/~a.rkt" test-name)))
+                  (if (and (not typechecks) (not type-error-expected))
+                    (begin 
+	              (append suite-type-fail-names '(,test-name))
+	              (set! suite-type-fails (+ suite-type-fails 1))
+	              (set! type-fails (+ type-fails 1))
+	              (printf (format "test ~a failed, unexpected type error" test-name)) 
+	              (raise "type-error"))
+                    '())
+                  (if typechecks
+                    (if (system (format "gcc -g -std=c99 runtime.o tests/~a.s" test-name))
+                      (void) (exit))
+                    '())
+                  (let* ([input (if (file-exists? (format "tests/~a.in" test-name))
+                                  (format " < tests/~a.in" test-name)
+                                  "")]
+                         [output (if (file-exists? (format "tests/~a.res" test-name))
+                                   (call-with-input-file
+                                     (format "tests/~a.res" test-name)
+                                    (lambda (f) (read-line f)))
+                                   "42")]
+                         [progout (if typechecks (process (format "./a.out~a" input)) 'type-error)]
+                        )
+                  ;; process returns a list, it's first element is stdout
+                  (match progout
+                    ['type-error (display test-name) (display " ") (flush-output)] ;already know we don't have a false positive
+                    [`(,in1 ,out ,_ ,in2 ,control-fun)
+                      (if type-error-expected
+		        (begin
+		          (append suite-type-fail-names '(,test-name))
+	                  (set! type-fails (+ type-fails 1))
+	                  (set! suite-type-fails (+ suite-type-fails 1))
+		          (printf (format "test ~a passed typechecking but should not have." test-name))
+		          (raise "type-error"))
+                        '())
+                      (control-fun 'wait)
+                      (cond 
+			[(eq? (control-fun 'status) 'done-ok)
+                          (let ([result (read-line (car progout))])
+                            (if (eq? (string->symbol result) (string->symbol output))
+                              (begin (display test-name)(display " ")(flush-output) (set! suc (+ suc 1)))
+			      (begin 
+                                (printf (format "test ~a failed, output: ~a, expected ~a" 
+                                               test-name result output))
+			        (set! suite-fails (+ suite-fails 1))
+			        (set! fail (+ fail 1))
+                        	(set! suite-fail-names (append suite-fail-names `(,test-number))))))]
+                        [else
+		          (begin 
+                            (set! suite-fail-names (append suite-fail-names `(,test-number)))
+	                    (set! fail (+ fail 1))
+	                    (set! suite-fails (+ suite-fails 1))
+                            (printf (format "test ~a error in x86 execution, exit code: ~a" 
+                                     test-name (control-fun 'exit-code))))])
+                   (close-input-port in1)
+                   (close-input-port in2)
+                   (close-output-port out)])
+            )))
+            (loop (append info `((,test-family ,suite-type-fails ,suite-type-fail-names ,suite-fails ,suite-fail-names))) (cdr tests)))) 
+        info)
+    )])
+    (print-results suc fail type-fails res #t))
+  ))
 
 ;; Takes a function of 1 argument (or #f) and Racket expression, and
 ;; returns whether the expression is well-typed. If the first argument
