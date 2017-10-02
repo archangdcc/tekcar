@@ -25,6 +25,8 @@
 (require "ch4/build-move.rkt")
 (require "ch4/allocate-registers.rkt")
 (require "ch4/lower-conditionals.rkt")
+(require "ch4/patch-instructions.rkt")
+(require "ch4/print-x86.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -101,4 +103,6 @@
      ("build-move" ,build-move-R2 ,interp-x86)
      ("allocate-registers" ,allocate-registers-R2 ,interp-x86)
      ("lower-conditionals" ,lower-conditionals ,interp-x86)
+     ("patch-instructions" ,patch-instructions-R2 ,interp-x86)
+     ("print-x86" ,print-x86-R2 #f)
      ))
