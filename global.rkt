@@ -4,7 +4,8 @@
          temp-reg return-reg
          callee-regs caller-regs
          caller-num reg-num
-         color->reg reg->color)
+         color->reg reg->color
+         cc)
 
 (define sym-pool (void))
 (define (init-sym)
@@ -37,3 +38,11 @@
   (list-ref all-regs color))
 (define (reg->color reg)
   (index-of all-regs reg))
+
+(define (cc cmp)
+  (match cmp
+    ['< 'l]
+    ['> 'g]
+    ['eq? 'e]
+    ['<= 'le]
+    ['>= 'ge]))

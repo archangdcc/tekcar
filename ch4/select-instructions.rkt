@@ -11,14 +11,6 @@
     [(boolean? arg) (if arg `(int 1) `(int 0))]
     [(symbol? arg) `(var ,arg)]))
 
-(define (cc cmp)
-  (match cmp
-    ['< 'l]
-    ['> 'g]
-    ['eq? 'e]
-    ['<= 'le]
-    ['>= 'ge]))
-
 (define (select-instr instr tail)
   (match instr
     [`(assign ,lhs (read))
