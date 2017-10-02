@@ -24,6 +24,7 @@
 (require "ch4/build-interference.rkt")
 (require "ch4/build-move.rkt")
 (require "ch4/allocate-registers.rkt")
+(require "ch4/lower-conditionals.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -99,4 +100,5 @@
      ("build-interference" ,build-interference-R2 ,interp-x86)
      ("build-move" ,build-move-R2 ,interp-x86)
      ("allocate-registers" ,allocate-registers-R2 ,interp-x86)
+     ("lower-conditionals" ,lower-conditionals ,interp-x86)
      ))
