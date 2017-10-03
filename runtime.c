@@ -302,7 +302,30 @@ static void copy_vector(int64_t** vector_ptr_loc);
 
 void cheney(int64_t** rootstack_ptr)
 {
+	int64_t *queue = tospace_begin;
+	int64_t **walk = rootstack_begin;
 
+	free_ptr = tospace_begin;
+
+	while (walk < rootstack_ptr)
+		copy_vector(walk++);
+
+	while (queue < free_ptr) {
+		int length = get_length(*queue);
+		int64_t ptr_bits = get_ptr_bitfield(*queue);
+		for (int i = 0; i < 50; i++)
+			if (ptr_bits & (1 << i))
+				copy_vector((int64_t **)(queue + i + 1));
+		queue += length + 1;
+	}
+
+	int64_t *tmp = fromspace_begin;
+	fromspace_begin = tospace_begin;
+	tospace_begin = tmp;
+
+	tmp = fromspace_end;
+	fromspace_end = tospace_end;
+	tospace_end = tmp;
 }
 
 
@@ -358,7 +381,15 @@ void cheney(int64_t** rootstack_ptr)
 */
 void copy_vector(int64_t** vector_ptr_loc)
 {
-
+	if (is_forwarding(**vector_ptr_loc))
+		*vector_ptr_loc = (int64_t *)**vector_ptr_loc;
+	else {
+		int length = get_length(**vector_ptr_loc);
+		int64_t *new_ptr = free_ptr;
+		for (int i = 0; i < length; i++)
+			*(free_ptr++) = *(*vector_ptr_loc + i);
+		*vector_ptr_loc = new_ptr;
+	}
 }
 
 
