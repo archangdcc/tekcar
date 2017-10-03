@@ -66,8 +66,7 @@
              `((if (eq? ,ret_c #t)
                  ,(append assign_t `((assign ,y ,ret_t)))
                  ,(append assign_e `((assign ,y ,ret_e))))))
-           (append var_c `(,y) var_t var_e))))]
-    ))
+           (append var_c `(,y) var_t var_e))))]))
 
 (define (flat e)
   (match e
