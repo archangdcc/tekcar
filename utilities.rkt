@@ -267,13 +267,15 @@
                            (cond [result
                                   (cond [(equal? result new-result)
                                          (loop (cdr passes) new-p new-result)]
+                                        [(and (boolean? result) (eq? (b2i result) new-result))
+                                         (loop (cdr passes) new-p new-result)]
                                         [else
                                          (display "in program")(newline)
                                          (pretty-print new-p)(newline)
                                          (error 'check-passes
-                                                "differing results in compiler '~a' pass '~a', expected ~a, not"
+                                                "differing results in compiler '~a' pass '~a', expected ~a, not ~a"
                                                 name pass-name result
-                                                #;new-result
+                                                new-result
                                                 )])]
                                  [else ;; no result to check yet
                                   (loop (cdr passes) new-p new-result)]))]
@@ -395,10 +397,14 @@
          (control-fun 'wait)
          (cond [(eq? (control-fun 'status) 'done-ok)
                 (let ([result (read-line (car progout))])
-                  (if (eq? (string->symbol result) (string->symbol output))
-                      (begin (display test-name)(display " ")(flush-output))
-                      (error (format "test ~a failed, output: ~a, expected ~a"
-                                     test-name result output))))]
+                  (let ([r (string->symbol result)]
+                        [o (string->symbol output)])
+                    (if (or (eq? r o)
+                            (and (eq? r '|1|) (eq? o '|#t|))
+                            (and (eq? r '|0|) (eq? o '|#f|)))
+                        (begin (display test-name)(display " ")(flush-output))
+                        (error (format "test ~a failed, output: ~a, expected ~a"
+                                       test-name result output)))))]
                [else
                 (error
                  (format "test ~a error in x86 execution, exit code: ~a"
@@ -574,14 +580,18 @@
                       (cond 
 			[(eq? (control-fun 'status) 'done-ok)
                           (let ([result (read-line (car progout))])
-                            (if (eq? (string->symbol result) (string->symbol output))
-                              (begin (display test-name)(display " ")(flush-output) (set! suc (+ suc 1)))
+                            (let ([r (string->symbol result)]
+                                  [o (string->symbol output)])
+                              (if (or (eq? r o)
+                                      (and (eq? r '|1|) (eq? o '|#t|))
+                                      (and (eq? r '|0|) (eq? o '|#f|)))
+                                (begin (display test-name)(display " ")(flush-output) (set! suc (+ suc 1)))
 			      (begin 
-                                (printf (format "test ~a failed, output: ~a, expected ~a" 
-                                               test-name result output))
+                                  (printf (format "test ~a failed, output: ~a, expected ~a" 
+                                                test-name result output))
 			        (set! suite-fails (+ suite-fails 1))
 			        (set! fail (+ fail 1))
-                        	(set! suite-fail-names (append suite-fail-names `(,test-number))))))]
+                        	(set! suite-fail-names (append suite-fail-names `(,test-number)))))))]
                         [else
 		          (begin 
                             (set! suite-fail-names (append suite-fail-names `(,test-number)))
