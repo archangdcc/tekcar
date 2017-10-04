@@ -308,7 +308,8 @@ void cheney(int64_t** rootstack_ptr)
 	free_ptr = tospace_begin;
 
 	while (walk < rootstack_ptr)
-		copy_vector(walk++);
+		if (*walk)
+			copy_vector(walk++);
 
 	while (queue < free_ptr) {
 		int length = get_length(*queue);
