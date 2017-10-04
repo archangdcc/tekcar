@@ -28,11 +28,14 @@
 (require "ch4/patch-instructions.rkt")
 (require "ch4/print-x86.rkt")
 
+(require "ch5/uniquify.rkt")
+
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
 (provide r1-passes)
 (provide r1-passes-ch3)
 (provide r2-passes)
+(provide r3-passes)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
@@ -105,4 +108,8 @@
      ("lower-conditionals" ,lower-conditionals ,interp-x86)
      ("patch-instructions" ,patch-instructions-R2 ,interp-x86)
      ("print-x86" ,print-x86-R2 #f)
+     ))
+
+(define r3-passes
+  `( ("uniquify" ,uniquify-R3 ,interp-scheme)
      ))
