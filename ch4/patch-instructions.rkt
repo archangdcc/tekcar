@@ -19,6 +19,6 @@
 
 (define (patch-instructions-R2 e)
   (match e
-    [`(program ,frame-size . ,instrs)
-     `(program ,frame-size .
+    [`(program ,info ,type . ,instrs)
+     `(program ,info ,type .
        ,(foldr patch-instr '() instrs))]))

@@ -83,9 +83,9 @@
       (flat `(if ,e₁ ,e₂ #f))]
     [`(if ,condition ,thns ,elss)
       (flat-if condition thns elss)]
-    [`(program ,e)
+    [`(program ,type ,e)
       (let-values ([(ret assign var) ((malloc flat) e)])    ;; only assign to non-arg in return
-        `(program ,var . ,(append assign `((return ,ret)))))]
+        `(program ,var ,type . ,(append assign `((return ,ret)))))]
     [`(,op ,es ...)
       (let-values
         ([(rets assigns vars) (map3 (malloc flat) es)])     ;; only assign to non-arg in op clause

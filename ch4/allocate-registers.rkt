@@ -115,7 +115,7 @@
 
 (define (allocate-registers-R2 p)
   (match p
-    [`(program (,vars ... ,interf ,move) . ,instrs)
+    [`(program (,vars ... ,interf ,move) ,type . ,instrs)
       (let*
         ([color-table (color-graph interf move vars)]
          [used-callee (mutable-set)]
@@ -123,5 +123,5 @@
          [instrs
            (map (alloc-reg color-table used-callee used-stack) instrs)])
         `(program
-           (,(set->list used-callee) ,(unbox used-stack))
-           ,@instrs))]))
+           (,(set->list used-callee) ,(unbox used-stack)) ,type .
+           ,instrs))]))

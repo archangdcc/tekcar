@@ -46,7 +46,7 @@
 
 (define (build-interference-R2 p)
   (match p
-    [`(program (,vars ... ,live-after) . ,instrs)
+    [`(program (,vars ... ,live-after) ,type . ,instrs)
       (let* ([graph (make-graph vars)]
              [instrs (build-graph graph live-after instrs)])
-        `(program (,@vars ,graph) . ,instrs))]))
+        `(program (,@vars ,graph) ,type . ,instrs))]))

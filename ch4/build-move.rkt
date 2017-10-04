@@ -20,7 +20,7 @@
 
 (define (build-move-R2 p)
   (match p
-    [`(program (,vars ... ,interf) . ,instrs)
+    [`(program (,vars ... ,interf) ,type . ,instrs)
       (let ([move (make-graph vars)])
         (build-graph move instrs)
-        `(program (,@vars ,interf ,move) . ,instrs))]))
+        `(program (,@vars ,interf ,move) ,type . ,instrs))]))

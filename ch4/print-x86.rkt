@@ -64,7 +64,7 @@
         (print-x86-R2 arg))]
     [`(deref ,reg ,offset) (format "~v(%~a)" offset reg)]
     [`(callq ,label) (format "\tcallq\t~a~s" func-pre label)]
-    [`(program (,used-callee ,used-stack) . ,instrs)
+    [`(program (,used-callee ,used-stack) ,type . ,instrs)
       (string-join
         (map print-x86-R2 instrs) "\n"
         #:before-first (header used-callee used-stack)

@@ -16,7 +16,7 @@
         (let ([y (gen-sym x)])
           `(let ([,y ,((uniq alist) e)])
              ,((uniq `((,x . ,y) . ,alist)) body)))]
-      [`(program ,info ,e) `(program ,((uniq alist) e))]
+      [`(program ,type ,e) `(program ,type ,((uniq alist) e))]
       [`(,op ,es ...) `(,op ,@(map (uniq alist) es))]
       )))
 

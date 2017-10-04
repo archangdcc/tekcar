@@ -60,7 +60,7 @@
 
 (define (select-instructions-R2 e)
   (match e
-    [`(program ,vars . ,instrs)
+    [`(program ,vars ,type . ,instrs)
       (let ([x86*-instrs
              (foldr select-instr '() instrs)])
-        `(program ,vars . ,x86*-instrs))]))
+        `(program ,vars ,type . ,x86*-instrs))]))

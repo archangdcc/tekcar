@@ -22,6 +22,6 @@
 
 (define (lower-conditionals p)
   (match p
-    [`(program ,info . ,instrs)
-     `(program ,info .
+    [`(program ,info ,type . ,instrs)
+     `(program ,info ,type .
        ,(foldr lower-cond '() instrs))]))

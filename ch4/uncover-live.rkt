@@ -76,8 +76,8 @@
 
 (define (uncover-live-R2 e)
   (match e
-    [`(program ,vars . ,instrs)
+    [`(program ,vars ,type . ,instrs)
       (let-values
         ([(live-after new-instrs)
           (uncover-live-helper (set) instrs)])
-        `(program (,@vars ,(cdr live-after)) . ,new-instrs))]))
+        `(program (,@vars ,(cdr live-after)) ,type . ,new-instrs))]))
