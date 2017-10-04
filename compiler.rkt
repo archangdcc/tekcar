@@ -29,6 +29,7 @@
 (require "ch4/print-x86.rkt")
 
 (require "ch5/uniquify.rkt")
+(require "ch5/expose-allocation.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -112,4 +113,5 @@
 
 (define r3-passes
   `( ("uniquify" ,uniquify-R3 ,interp-scheme)
+     ("expose-alloction" ,expose-allocation ,interp-scheme)
      ))
