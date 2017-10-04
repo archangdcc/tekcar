@@ -12,6 +12,13 @@
         (format template reg))) ""
     ls))
 
+(define (printtype type)
+  (match type
+    [`(type ,T)
+      (match T
+        ['Integer "print_int"]
+        ['Boolean "print_bool"])]))
+
 (define (header used-callee used-stack)
   (string-append
     "\t.globl\t"
@@ -30,13 +37,14 @@
     "\tsubq\t$~v, %rsp\n\n"
       (* (ceiling (/ used-stack 2)) 16)))))
 
-(define (footer used-callee used-stack)
+(define (footer used-callee used-stack type)
   (string-append
     "\n\n"
     "\tmovq\t%rax, %rdi\n"
     "\tcallq\t"
     func-pre
-    "print_int\n"
+    (printtype type)
+    "\n"
       (if (zero? used-stack)
     ""
       (format
@@ -68,7 +76,7 @@
       (string-join
         (map print-x86-R2 instrs) "\n"
         #:before-first (header used-callee used-stack)
-        #:after-last (footer used-callee used-stack))]
+        #:after-last (footer used-callee used-stack type))]
     [`(label ,label) (format "~a:" label)]
     [`(,op ,es ...)
       (string-join
