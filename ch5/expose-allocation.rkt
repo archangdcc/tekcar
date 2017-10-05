@@ -48,7 +48,10 @@
                (let
                  ([,initret
                     (has-type
-                      (vector-set! ,v ,n ,vecinit)
+                      (vector-set!
+                        (has-type ,v ,t)
+                        (has-type ,n Integer)
+                        (has-type ,vecinit ,(caddr e)))
                       Void)])
                  ,tail)
                ,t))))]))
