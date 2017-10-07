@@ -1,7 +1,7 @@
 #lang racket
 
 (provide func-pre init-sym gen-sym
-         temp-reg return-reg
+         temp-reg return-reg vec-reg rstk-reg
          callee-regs caller-regs
          caller-num reg-num
          color->reg reg->color
@@ -21,6 +21,8 @@
 
 (define temp-reg 'rax)
 (define return-reg 'rax)
+(define vec-reg 'r11)
+(define rstk-reg 'r15) ;; root stack
 
 ;; these are already define in utilities as caller/ee-save
 ;; but as sets.
