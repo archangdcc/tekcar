@@ -387,10 +387,11 @@ void copy_vector(int64_t** vector_ptr_loc)
 	if (is_forwarding(**vector_ptr_loc))
 		*vector_ptr_loc = (int64_t *)**vector_ptr_loc;
 	else {
-		unsigned char length = get_length(**vector_ptr_loc);
+		int length = get_length(**vector_ptr_loc);
 		int64_t *new_ptr = free_ptr;
-		for (unsigned char i = 0; i < length + 1; i++)
+		for (int i = 0; i < length + 1; i++)
 			*(free_ptr++) = *(*vector_ptr_loc + i);
+		**vector_ptr_loc = (int64_t)new_ptr;
 		*vector_ptr_loc = new_ptr;
 	}
 }
