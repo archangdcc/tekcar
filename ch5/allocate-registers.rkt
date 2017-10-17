@@ -18,7 +18,7 @@
                (if (> idx (unbox used-rstk))
                  (set-box! used-rstk idx)
                  (void))
-               `(deref r15 ,(* -8 idx)))]
+               `(rstk ,idx))]
             [(>= c reg-num)  ;; stk
              (let ([idx (- c (- reg-num 1))])
                (if (> idx (unbox used-stk))
@@ -103,6 +103,32 @@
       vars)
     sats))
 
+
+(define (hdr-rstk n instrs)
+  (cond
+    [(zero? n) instrs]
+    [else
+      (hdr-rstk
+        (- n 1)
+        `((movq (int 0) (deref r15 0))
+          (addq (int 8) (reg r15)) . ,instrs))]))
+
+(define (reloc-rstk n)
+  (lambda (instr)
+    (match instr
+      [`(rstk ,idx)
+       `(deref r15 ,(* -8 (+ 1 (- n idx))))]
+      [`(if (,cmp ,args ...) ,thns ,elss)
+       `(if (,cmp ,@(map (reloc-rstk n) args))
+          ,(map (reloc-rstk n) thns)
+          ,(map (reloc-rstk n) elss))]
+      [`(,op ,args ...)
+       `(,op ,@(map (reloc-rstk n) args))]
+      [_ instr])))
+
+(define (mod-rstk nrstk instrs)
+  (hdr-rstk nrstk (map (reloc-rstk nrstk) instrs)))
+
 (define (allocate-registers-R3 p)
   (match p
     [`(program (,vars ... ,itbl ,mtbl) ,type . ,instrs)
@@ -115,7 +141,9 @@
          [used-stk (box 0)]
          [used-rstk (box 0)]
          [instrs
-           (map (alloc-reg ctbl used-callee used-stk used-rstk) instrs)])
+           (map (alloc-reg ctbl used-callee used-stk used-rstk) instrs)]
+         [nrstk (unbox used-rstk)]
+         [instrs (mod-rstk nrstk instrs)])
         `(program
            (,(set->list used-callee)
             ,(unbox used-stk)

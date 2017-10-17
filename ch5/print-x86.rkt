@@ -41,11 +41,7 @@
     "\tmovq\t$16384, %rdi\n"
     "\tmovq\t$16, %rsi\n"
     "\tcallq\t" func-pre "initialize\n"
-    "\tmovq\t" func-pre "rootstack_begin(%rip), %r15\n"
-    "\tmovq\t$0, (%r15)\n"
-      (format
-    "\taddq\t$~v, %r15\n\n"
-      (* 8 used-rstk))
+    "\tmovq\t" func-pre "rootstack_begin(%rip), %r15\n\n"
       ))
 
 (define (footer used-callee used-stk used-rstk type)
@@ -56,14 +52,16 @@
     func-pre
     (printtype type)
     "\n"
+      (if (zero? used-rstk)
+    ""
+      (format
+    "\tsubq\t$~v, %r15\n"
+      (* used-stk 8)))
       (if (zero? used-stk)
     ""
       (format
     "\taddq\t$~v, %rsp\n"
       (* (ceiling (/ used-stk 2)) 16)))
-      (format
-    "\tsubq\t$~v, %r15\n"
-      (* 8 used-rstk))
     "\tmovq\t$0, %rax\n"
       (callee-handler foldr used-callee
     "\tpopq\t%~s\n"
