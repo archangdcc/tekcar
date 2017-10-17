@@ -32,6 +32,10 @@
 (require "ch5/expose-allocation.rkt")
 (require "ch5/flatten.rkt")
 (require "ch5/select-instructions.rkt")
+(require "ch5/uncover-live.rkt")
+(require "ch5/build-interference.rkt")
+(require "ch5/build-move.rkt")
+(require "ch5/allocate-registers.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -118,4 +122,8 @@
      ("expose-alloction" ,expose-allocation ,interp-scheme)
      ("flatten" ,flatten-R3 ,interp-C)
      ("select-instructions" ,select-instructions-R3 ,interp-x86)
+     ("uncover-live" ,uncover-live-R3 ,interp-x86)
+     ("build-interference" ,build-interference-R3 ,interp-x86)
+     ("build-move" ,build-move-R3 ,interp-x86)
+     ("allocate-registers" ,allocate-registers-R3 ,interp-x86)
      ))
