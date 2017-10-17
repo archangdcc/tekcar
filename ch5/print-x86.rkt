@@ -16,7 +16,7 @@
   (match type
     [`(type ,T)
       (match T
-        [`(Vector ,ts ...) "print_vector"]
+        [`(Vector . ,ts) "print_vector"]
         ['Integer "print_int"]
         ['Void "print_void"]
         ['Boolean "print_bool"])]))
@@ -38,8 +38,8 @@
       (format
     "\tsubq\t$~v, %rsp\n"
       (* (ceiling (/ used-stk 2)) 16)))
-    "\tmovq\t$32, %rdi\n"
-    "\tmovq\t$8, %rsi\n"
+    "\tmovq\t$16384, %rdi\n"
+    "\tmovq\t$16, %rsi\n"
     "\tcallq\t" func-pre "initialize\n"
     "\tmovq\t" func-pre "rootstack_begin(%rip), %r15\n"
     "\tmovq\t$0, (%r15)\n"

@@ -39,16 +39,16 @@
        `(,op ,@(map (alloc-reg ctbl used-callee used-stk used-rstk) args))]
       [_ instr])))
 
-(define (min-color satur c)
-  (if (set-member? satur c)
-    (min-color satur (+ 1 c)) c))
+(define (min-color sat c)
+  (if (set-member? sat c)
+    (min-color sat (+ 1 c)) c))
 
-(define (min-color-vec satur c)
+(define (min-color-vec sat c)
   (if (< (- c) reg-num)
-    (if (set-member? satur (- c))
-      (min-color satur (- 1 c)) (- c))
-    (if (set-member? satur c)
-      (min-color satur (- 1 c)) c)))
+    (if (set-member? sat (- c))
+      (min-color-vec sat (- c 1)) (- c))
+    (if (set-member? sat c)
+      (min-color-vec sat (- c 1)) c)))
 
 (define (select-color ctbl mvr sat t)
   (let ([frqs (make-frqs)]) ;;  color: freq
@@ -64,7 +64,7 @@
             (void))))
       (if (empty-frqs? frqs)
         (match t
-          [`(Vector . ,ts) (min-color-vec sat 0) ]
+          [`(Vector . ,ts) (min-color-vec sat 0)]
           [_ (min-color sat 0)])  ; use the minimum valid color
         (max-frqs frqs)))))  ; use the max-freq move-related color
 
