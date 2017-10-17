@@ -39,11 +39,10 @@
 ;(display "\e[0;34;42mcontrol flow: compile tests passed!\e[0m") (newline)
 
 
-(debug-level 2)
-(interp-tests "tuple & gc" typecheck-R3 r3-passes interp-scheme "r3" (range 13 14))
-(display "\e[0;34;42mtuple & gc passed!\e[0m") (newline)
-;(debug-level 0)
-;(compiler-tests "tuple & gc" typecheck-R3 r3-passes "r3" (range 1 36))
-;(newline)
-;(display "\e[0;34;42mtuple & gc: compile tests passed!\e[0m") (newline)
-
+;(debug-level 2)
+;(interp-tests "tuple & gc" typecheck-R3 r3-passes interp-scheme "r3" (range 1 36))
+;(display "\e[0;34;42mtuple & gc passed!\e[0m") (newline)
+(debug-level 0)
+(compiler-tests "tuple & gc" typecheck-R3 r3-passes "r3" (range 1 36))
+(newline)
+(display "\e[0;34;42mtuple & gc: compile tests passed!\e[0m") (newline)

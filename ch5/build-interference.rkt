@@ -52,7 +52,7 @@
 
 (define (build-interference-R3 p)
   (match p
-    [`(program (,vars ... ,live-after) ,type . ,instrs)
+    [`(program (,vars ... ,live-after ,nulls) ,type . ,instrs)
       (let* ([graph (make-graph (map (lambda (v) (car v)) vars))]
              [instrs (build-graph graph live-after instrs vars)])
-        `(program (,@vars ,graph) ,type . ,instrs))]))
+        `(program (,@vars ,graph ,nulls) ,type . ,instrs))]))
