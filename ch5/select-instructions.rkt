@@ -20,7 +20,8 @@
             (bitwise-ior (arithmetic-shift tag 1) 1)
             (arithmetic-shift tag 1)))
         0 types) 7)
-    (arithmetic-shift n 1)))
+    (arithmetic-shift n 1)
+    1))
 
 (define (select-instr instr tail)
   (match instr
