@@ -64,7 +64,7 @@
             (void))))
       (if (empty-frqs? frqs)
         (match t
-          [`(Vector ,ts ...) (min-color-vec sat 0)]
+          [`(Vector . ,ts) (min-color-vec sat 0) ]
           [_ (min-color sat 0)])  ; use the minimum valid color
         (max-frqs frqs)))))  ; use the max-freq move-related color
 

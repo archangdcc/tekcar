@@ -314,7 +314,7 @@ void cheney(int64_t** rootstack_ptr)
 	while (queue < free_ptr) {
 		int length = get_length(*queue);
 		int64_t ptr_bits = get_ptr_bitfield(*queue);
-		for (int i = 0; i < 50; i++)
+		for (int i = 0; i < length; i++)
 			if (ptr_bits & (1 << i))
 				copy_vector((int64_t **)(queue + i + 1));
 		queue += length + 1;
@@ -385,9 +385,9 @@ void copy_vector(int64_t** vector_ptr_loc)
 	if (is_forwarding(**vector_ptr_loc))
 		*vector_ptr_loc = (int64_t *)**vector_ptr_loc;
 	else {
-		int length = get_length(**vector_ptr_loc);
+		unsigned char length = get_length(**vector_ptr_loc);
 		int64_t *new_ptr = free_ptr;
-		for (int i = 0; i < length; i++)
+		for (unsigned char i = 0; i < length + 1; i++)
 			*(free_ptr++) = *(*vector_ptr_loc + i);
 		*vector_ptr_loc = new_ptr;
 	}
