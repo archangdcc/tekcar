@@ -2,6 +2,8 @@
 
 (require "../global.rkt")
 
+(require "../utilities.rkt")
+
 (provide print-x86-R3)
 
 
@@ -12,14 +14,34 @@
         (format template reg))) ""
     ls))
 
-(define (printtype type)
-  (match type
-    [`(type ,T)
-      (match T
-        [`(Vector . ,ts) "print_vector"]
-        ['Integer "print_int"]
-        ['Void "print_void"]
-        ['Boolean "print_bool"])]))
+
+;(define (printtype type)
+;    "\tcallq\t"
+;    func-pre
+;  (match type
+;    [`(type ,T)
+;      (match T
+;        [`(Vector . ,ts)
+;          (string-append
+;            "\tmovq\trax\tr11\n"
+;            "\tcallq\tprint_vecbegin\n"
+;            (map print-vec ts)
+;            "\tcallq\tprint_vecend\n")]
+;        ['Integer
+;         (string-append
+;           "\tcallq\t"
+;           func-pre
+;           "print_int\n")]
+;        ['Void
+;         (string-append
+;           "\tcallq\t"
+;           func-pre
+;           "print_void\n")]
+;        ['Boolean
+;         (string-append
+;           "\tcallq\t"
+;           func-pre
+;           "print_bool\n")])]))
 
 (define (header used-callee used-stk used-rstk)
   (string-append
@@ -48,9 +70,7 @@
   (string-append
     "\n\n"
     "\tmovq\t%rax, %rdi\n"
-    "\tcallq\t"
-    func-pre
-    (printtype type)
+    (print-by-type (cadr type))
     "\n"
       (if (zero? used-rstk)
     ""
