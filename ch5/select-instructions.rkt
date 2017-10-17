@@ -14,11 +14,12 @@
 (define (tag types n)
   (bitwise-ior
     (arithmetic-shift
-      (foldl
+      (foldr
         (lambda (type tag)
-          (if (eq? type 'Vector)
-            (bitwise-ior (arithmetic-shift tag 1) 1)
-            (arithmetic-shift tag 1)))
+          (match type
+            [`(Vector . ,ts)
+              (bitwise-ior (arithmetic-shift tag 1) 1)]
+            [_ (arithmetic-shift tag 1)]))
         0 types) 7)
     (arithmetic-shift n 1)
     1))
@@ -40,11 +41,11 @@
        (movq ,(select-arg arg) (deref ,vec-reg ,(* 8 (+ n 1))))
        (movq (int 0) (var ,lhs)) .
        ,tail)]
-    [`(assign ,lhs (allocate ,n (Vector ,type ...)))
+    [`(assign ,lhs (allocate ,n (Vector . ,types)))
      `((movq (global-value free_ptr) (var ,lhs))
        (addq (int ,(* 8 (+ n 1))) (global-value free_ptr))
        (movq (var ,lhs) (reg ,vec-reg))
-       (movq (int ,(tag type n)) (deref ,vec-reg 0)) .
+       (movq (int ,(tag types n)) (deref ,vec-reg 0)) .
        ,tail)]
     [`(collect ,b)
      `((movq (reg ,rstk-reg) (reg rdi))
