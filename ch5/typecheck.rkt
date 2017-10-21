@@ -70,7 +70,7 @@
         (match t*
           [`(Integer ,then-else ...) (error 'typecheck "'if' expects a Boolean in ~s" e)]
           [`(Boolean ,thenT ,elseT)
-            (if (eq? thenT elseT)
+            (if (equal? thenT elseT)
               (values `(has-type (if ,@e*) ,thenT) thenT)
               (error 'typecheck "'if' clause types not matching in ~s" e))])]
       [`(+ ,(app (typecheck env) e* t*) ...)
