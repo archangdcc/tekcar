@@ -15,22 +15,28 @@
              [elss (build-graph graph els-live elss vars)])
             `(if (,cmp ,x ,y) ,thns ,elss))]
         [`(cmpq ,x ,y) instr]
-        [`(movq (var ,y) (var ,x))
+        [`(movq (,tagy ,y) (,tagx ,x))
+          #:when
+          (and
+            (not (eq? tagy 'int))
+            (not (eq? tagy 'stack-arg))
+            (not (eq? tagx 'stack-arg)))
           (begin
             (set-for-each live
               (lambda (v)
                 (cond
                   [(eq? v x) (void)]
                   [(eq? v y) (void)]
-                  [else (add-edge graph x v)])))
+                  [else (add-edge* graph x v)])))
             instr)]
-        [`(,op ... (var ,x))   ;; movzbq is handled here
+        [`(,op ... (,tag ,x))   ;; movzbq is handled here
+          #:when (not (eq? tag 'stack-arg))
           (begin
             (set-for-each live
               (lambda (v)
                 (cond
                   [(eq? v x) (void)]
-                  [else (add-edge graph x v)])))
+                  [else (add-edge* graph x v)])))
             instr)]
         [`(indirect-callq ,arg)
           (begin
@@ -38,7 +44,7 @@
               (lambda (v)
                 (for-each
                   (lambda (r)
-                    (add-edge graph r v))
+                    (add-edge* graph r v))
                   caller-regs))))]
         [`(callq ,label)
           (begin
@@ -46,16 +52,16 @@
               (lambda (v)
                 (for-each
                   (lambda (r)
-                    (add-edge graph r v))
+                    (add-edge* graph r v))
                   (if (and
                         (eq? label 'collect)
-                        (let ([t (lookup v vars)])
+                        (let ([t (lookup v vars v)])
                           (and
                             (pair? t)
                             (eq? (car t) 'Vector))))
                     all-regs caller-regs))))
             instr)]
-        [_ instr]))    ;; may need extra work for reg args
+        [_ instr]))  ;; deref and stack-arg
     live-after instrs))
 
 (define (build-interference-R4 p)

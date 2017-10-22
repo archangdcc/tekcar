@@ -35,6 +35,10 @@
         (hash-set!
           rtbl y
           (set-add (hash-ref rtbl y (set)) 'valid))]
+      [`(indirect-callq (var ,x))
+        (hash-set!
+          rtbl x
+          (set-add (hash-ref rtbl x (set)) 'valid))]
       [`(,op (var ,x) (var ,y))     ;; addq xorq movq
         (hash-set!
           rtbl x

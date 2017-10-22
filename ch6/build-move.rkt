@@ -9,10 +9,15 @@
   (for-each
     (lambda (instr)
       (match instr
-        [`(movq (var ,y) (var ,x))
-          (if (or (set-member? nulls x) (set-member? nulls y))
-            (void)
-            (add-edge graph x y))]
+        [`(movq (,tagy ,y) (,tagx ,x))
+          #:when
+          (and
+            (not (set-member? nulls x))
+            (not (set-member? nulls y))
+            (not (set-member? nulls y))
+            (not (eq? tagy 'stack-arg))
+            (not (eq? tagx 'stack-arg)))
+          (add-edge* graph x y)]
         [`(if ,c ,thns ,elss)
           (begin
             (build-graph graph thns nulls)

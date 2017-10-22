@@ -5,6 +5,12 @@
 (define (vars arg)
   (match arg
     [`(var ,x) (set x)]
+    [`(reg ,r) (set r)]
+    [_ (set)]))
+
+(define (deref arg)
+  (match arg
+    [`(deref ,r ,n) (set r)]
     [_ (set)]))
 
 (define (vars-assort instr)  ;; return all-vars, w-vars, r-vars
@@ -12,7 +18,10 @@
     [`(movq ,x ,y)
       (let ([sx (vars x)]
             [sy (vars y)])
-        (values (set-union sx sy) sy sx))]
+        (values
+          (set-union sx sy)
+          sy
+          (set-union sx (deref x) (deref y))))]
     [`(cmpq ,x ,y)
       (let ([sx (vars x)]
             [sy (vars y)])
@@ -27,14 +36,17 @@
       (values (set) (set) (set))]
     [`(movzbq ,x ,y)  ;; x is always (byte-reg al)
       (let ([sy (vars y)])
-        (values sy sy (set)))]
+        (values sy sy (deref y)))]
     [`(,op ,x)        ;; negq
       (let ([sx (vars x)])
-        (values sx sx sx))]
+        (values sx sx (set-union sx (deref x))))]
     [`(,op ,x ,y)     ;; addq xorq
       (let ([sx (vars x)]
             [sy (vars y)])
-        (values (set-union sx sy) sy (set-union sx sy)))]))
+        (values
+          (set-union sx sy)
+          sy
+          (set-union sx sy (deref x) (deref y))))]))
 
 (define (uncover-live-helper live-after instrs)
   ;; the car of the result should be ignored
