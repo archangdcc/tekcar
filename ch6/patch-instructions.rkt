@@ -13,10 +13,15 @@
     [`(cmpq ,arg (int ,int))
      `((movq (int ,int) (reg ,temp-reg))
        (cmpq ,arg (reg ,temp-reg)) . ,tail)]
+    [`(leaq ,arg₁ ,arg₂)
+      #:when (not (eq? (car arg₂) 'reg))
+     `((leaq ,arg₁ (reg ,temp-reg))
+       (movq (reg ,temp-reg) ,arg₂) . ,tail)]
     [`(,op ,arg₁ ,arg₂)
       #:when
       (and
         (pair? arg₁)
+        (not (eq? (car arg₁) 'int))
         (not (eq? (car arg₁) 'reg))
         (not (eq? (car arg₁) 'byte-reg))
         (not (eq? (car arg₂) 'reg))
