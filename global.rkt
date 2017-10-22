@@ -2,6 +2,8 @@
 
 (require data/heap)
 
+(require "utilities.rkt")
+
 (provide make-sats add-sats mod-sats max-sats
          empty-sats? sats-has-key?
          make-frqs add-frqs max-frqs empty-frqs?
@@ -10,7 +12,7 @@
          callee-regs caller-regs all-regs arg-regs
          caller-num reg-num arg-num
          color->reg reg->color
-         cc R4-ops heap-size rtstk-size)
+         cc R4-ops heap-size rstk-size add-edge*)
 
 (define sym-pool (void))
 (define (init-sym)
@@ -101,7 +103,7 @@
 (define arg-regs
   '(rdi rsi rdx rcx r8 r9))
 (define caller-regs
-  '(rcx rdx rsi rdi r8 r9 r10))    ;; omit rax r11
+  '(rcx rdx rsi rdi r8 r9 r10 r11))    ;; omit rax
 (define callee-regs
   '(rbx r12 r13 r14))   ;; omit rsp rbp r15
 (define all-regs
@@ -130,5 +132,19 @@
        'and 'not 'if 'read 'void
        'vector 'vector-ref 'vector-set!))
 
-(define rtstk-size 16384)
+(define rstk-size 16384)
 (define heap-size 16)
+
+(define (add-edge* graph x y)
+  (cond
+    [(eq? x rstk-reg) (void)]
+    [(eq? y rstk-reg) (void)]
+    [(eq? x temp-reg) (void)]
+    [(eq? y temp-reg) (void)]
+    [(and
+       (or (set-member? caller-save x)
+           (set-member? callee-save x))
+       (or (set-member? caller-save y)
+           (set-member? callee-save y)))
+     (void)]
+    [else (add-edge graph x y)]))

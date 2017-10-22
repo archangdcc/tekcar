@@ -50,6 +50,7 @@
 (require "ch6/uncover-null.rkt")
 (require "ch6/build-interference.rkt")
 (require "ch6/build-move.rkt")
+(require "ch6/allocate-registers.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -157,4 +158,5 @@
      ("uncover-null" ,uncover-null-R4 ,interp-x86)
      ("build-interference" ,build-interference-R4 ,interp-x86)
      ("build-move" ,build-move-R4 ,interp-x86)
+     ("allocate-registers" ,allocate-registers-R4 ,interp-x86)
      ))
