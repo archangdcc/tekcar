@@ -1,7 +1,7 @@
 #lang racket
 (require racket/fixnum)
 (require "utilities.rkt" (prefix-in runtime-config: "runtime-config.rkt"))
-(provide interp-scheme interp-C interp-x86 interp-R0 interp-R1 interp-R2 interp-R3
+(provide interp-scheme interp-C interp-F interp-x86 interp-R0 interp-R1 interp-R2 interp-R3
      interp-R4 interp-R6)
 
 (define interp-scheme
@@ -11,6 +11,10 @@
 (define interp-C
   (lambda (p)
     ((send (new interp-R6) interp-C '()) p)))
+
+(define interp-F
+  (lambda (p)
+    ((send (new interp-R6) interp-F '()) p)))
 
 (define interp-x86
   (lambda (p)
