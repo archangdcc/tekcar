@@ -21,10 +21,10 @@
 
 (define (flat-if condition thns elss)
   (match condition
-    [`(has-type ,condition Boolean)
-      (match condition
+    [`(has-type ,icondition Boolean)
+      (match icondition
         [(? boolean?)
-         (if condition (flat thns) (flat elss))]
+         (if icondition (flat thns) (flat elss))]
         [`(let ([,x ,e]) ,body)
           (flat `(let ([,x ,e]) (if ,body ,thns ,elss)))]
         [`(if ,condition ,ithns ,ielss)
