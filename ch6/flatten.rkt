@@ -21,7 +21,7 @@
 
 (define (flat-if condition thns elss)
   (match condition
-    [`(has-type ,conditon Boolean)
+    [`(has-type ,condition Boolean)
       (match condition
         [(? boolean?)
          (if condition (flat thns) (flat elss))]
