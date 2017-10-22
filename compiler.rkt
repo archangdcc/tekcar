@@ -45,6 +45,7 @@
 (require "ch6/reveal-functions.rkt")
 (require "ch6/expose-allocation.rkt")
 (require "ch6/flatten.rkt")
+(require "ch6/select-instructions.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -147,4 +148,5 @@
      ("reveal-functions" ,reveal-functions-R4 ,interp-F)
      ("expose-alloction" ,expose-allocation-R4 ,interp-F)
      ("flatten" ,flatten-R4 ,interp-C)
+     ("select-instructions" ,select-instructions-R4 ,interp-x86)
      ))

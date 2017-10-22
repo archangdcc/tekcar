@@ -7,10 +7,10 @@
          make-frqs add-frqs max-frqs empty-frqs?
          func-pre init-sym gen-sym
          temp-reg return-reg vec-reg rstk-reg
-         callee-regs caller-regs all-regs
-         caller-num reg-num
+         callee-regs caller-regs all-regs arg-regs
+         caller-num reg-num arg-num
          color->reg reg->color
-         cc R4-ops)
+         cc R4-ops heap-size rtstk-size)
 
 (define sym-pool (void))
 (define (init-sym)
@@ -98,6 +98,8 @@
 
 ;; these are already define in utilities as caller/ee-save
 ;; but as sets.
+(define arg-regs
+  '(rdi rsi rdx rcx r8 r9))
 (define caller-regs
   '(rcx rdx rsi rdi r8 r9 r10))    ;; omit rax r11
 (define callee-regs
@@ -106,6 +108,8 @@
   (append caller-regs callee-regs))
 (define caller-num
   (length caller-regs))
+(define arg-num
+  (length arg-regs))
 (define reg-num
   (length all-regs))
 (define (color->reg color)
@@ -126,3 +130,5 @@
        'and 'not 'if 'read 'void
        'vector 'vector-ref 'vector-set!))
 
+(define rtstk-size 16384)
+(define heap-size 16)
