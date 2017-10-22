@@ -143,7 +143,7 @@
            (dsat (init-sats vars itbl)
                  vars itbl mtbl
                  (make-hash) nulls)]
-         [used-callee (mutable-set rstk-reg)]
+         [used-callee (mutable-set)]
          [used-stk (box 0)]
          [used-rstk (box 0)]
          [instrs
@@ -165,7 +165,7 @@
            (dsat (init-sats vars itbl)
                  vars itbl mtbl
                  (make-hash) nulls)]
-         [used-callee (mutable-set rstk-reg)]
+         [used-callee (mutable-set)]
          [used-stk (box 0)]
          [used-rstk (box 0)]
          [instrs
