@@ -29,15 +29,6 @@
                   [(eq? v y) (void)]
                   [else (add-edge* graph x v)])))
             instr)]
-        [`(,op ... (,tag ,x))   ;; movzbq is handled here
-          #:when (not (eq? tag 'stack-arg))
-          (begin
-            (set-for-each live
-              (lambda (v)
-                (cond
-                  [(eq? v x) (void)]
-                  [else (add-edge* graph x v)])))
-            instr)]
         [`(indirect-callq ,arg)
           (begin
             (set-for-each live
@@ -45,7 +36,8 @@
                 (for-each
                   (lambda (r)
                     (add-edge* graph r v))
-                  caller-regs))))]
+                  caller-regs)))
+            instr)]
         [`(callq ,label)
           (begin
             (set-for-each live
@@ -60,6 +52,15 @@
                             (pair? t)
                             (eq? (car t) 'Vector))))
                     all-regs caller-regs))))
+            instr)]
+        [`(,op ... (,tag ,x))   ;; movzbq is handled here
+          #:when (not (eq? tag 'stack-arg))
+          (begin
+            (set-for-each live
+              (lambda (v)
+                (cond
+                  [(eq? v x) (void)]
+                  [else (add-edge* graph x v)])))
             instr)]
         [_ instr]))  ;; deref and stack-arg
     live-after instrs))
