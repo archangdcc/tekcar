@@ -43,6 +43,7 @@
 
 (require "ch6/uniquify.rkt")
 (require "ch6/reveal-functions.rkt")
+(require "ch6/expose-allocation.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -143,4 +144,5 @@
 (define r4-passes
   `( ("uniquify" ,uniquify-R4 ,interp-scheme)
      ("reveal-functions" ,reveal-functions-R4 ,interp-F)
+     ("expose-alloction" ,expose-allocation-R4 ,interp-F)
      ))
