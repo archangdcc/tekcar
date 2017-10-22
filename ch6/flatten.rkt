@@ -69,6 +69,10 @@
                      ,(append assign_e `((assign ,y ,ret_e))))))
                (append var_c `((,y . ,(caddr thns))) var_t var_e))))])]))
 
+(define (adda arg)
+  (match-let ([`(,v : ,t) arg])
+    `(,v . ,t)))
+
 (define (flat e)
   (match e
     [`(has-type ,e ,t) (flat e)]
@@ -94,8 +98,12 @@
     [`(if ,condition ,thns ,elss)
       (flat-if condition thns elss)]
     [`(define (,fn ,args ...) : ,t ,e)
-      (let-values ([(ret assign var) ((malloc flat) e)])    ;; only assign to non-arg in return
-        `(define (,fn ,@args) : ,t ,var ,@(append assign `((return ,ret)))))]
+      (let-values
+        ([(ret assign var) ((malloc flat) e)])    ;; only assign to non-arg in return
+         (let ([vara (map adda args)])
+        `(define (,fn ,@args) : ,t
+           ,(append vara var)
+           ,@(append assign `((return ,ret))))))]
     [`(program ,type ,ds ... ,e)
       (let-values ([(ret assign var) ((malloc flat) e)])    ;; only assign to non-arg in return
         `(program
