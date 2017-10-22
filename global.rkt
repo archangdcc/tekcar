@@ -10,7 +10,7 @@
          callee-regs caller-regs all-regs
          caller-num reg-num
          color->reg reg->color
-         cc)
+         cc R4-ops)
 
 (define sym-pool (void))
 (define (init-sym)
@@ -120,3 +120,9 @@
     ['eq? 'e]
     ['<= 'le]
     ['>= 'ge]))
+
+(define R4-ops
+  (set 'eq? '< '> '<= '>= '- '+
+       'and 'not 'if 'read 'void
+       'vector 'vector-ref 'vector-set!))
+

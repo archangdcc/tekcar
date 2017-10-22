@@ -5,11 +5,6 @@
 
 (provide reveal-functions-R4)
 
-(define ops
-  (set 'eq? '< '> '<= '>= '- '+
-       'and 'not 'if 'read 'void
-       'vector 'vector-ref 'vector-set!))
-
 (define (addf def fns)
   (match-let
     ([`(define (,fn ,arg ...) : ,t ,e) def])
@@ -37,7 +32,7 @@
             ,@(map (reveal-functions fns) ds)
             ,((reveal-functions fns) e)))]
       [`(,op ,es ...)
-        #:when (set-member? ops op)
+        #:when (set-member? R4-ops op)
         `(,op ,@(map (reveal-functions fns) es))]
       [`(,es ...)
        `(app ,@(map (reveal-functions fns) es))])))
