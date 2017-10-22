@@ -14,11 +14,24 @@
          color->reg reg->color
          cc ncc R4-ops heap-size rstk-size add-edge*)
 
+(define (remove-bad-symbol y)
+  (string->symbol
+    (list->string
+      (map
+        (lambda (s)
+          (if (or
+                (char-alphabetic? s)
+                (char-numeric? s)
+                (set-member? (set #\$ #\. #\_) s))
+            s #\_))
+        (string->list (symbol->string y))))))
+
 (define sym-pool (void))
 (define (init-sym)
   (set! sym-pool (make-hash)))
 (define (gen-sym y)
-  (let ([value (hash-ref! sym-pool y 0)])
+  (let* ([y (remove-bad-symbol y)]
+         [value (hash-ref! sym-pool y 0)])
    (hash-set! sym-pool y (+ 1 value))
    (string->symbol (format "~s.~s" y value))))
 
