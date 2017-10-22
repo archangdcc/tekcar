@@ -12,7 +12,7 @@
          callee-regs caller-regs all-regs arg-regs
          caller-num reg-num arg-num
          color->reg reg->color
-         cc R4-ops heap-size rstk-size add-edge*)
+         cc ncc R4-ops heap-size rstk-size add-edge*)
 
 (define sym-pool (void))
 (define (init-sym)
@@ -126,6 +126,14 @@
     ['eq? 'e]
     ['<= 'le]
     ['>= 'ge]))
+
+(define (ncc cmp)
+  (match cmp
+    ['< 'ge]
+    ['> 'le]
+    ['eq? 'ne]
+    ['<= 'g]
+    ['>= 'l]))
 
 (define R4-ops
   (set 'eq? '< '> '<= '>= '- '+
