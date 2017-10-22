@@ -41,6 +41,8 @@
 (require "ch5/patch-instructions.rkt")
 (require "ch5/print-x86.rkt")
 
+(require "ch6/uniquify.rkt")
+
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
 (provide r1-passes)
@@ -138,6 +140,5 @@
      ))
 
 (define r4-passes
-  `(
-
+  `( ("uniquify" ,uniquify-R4 ,interp-scheme)
      ))
