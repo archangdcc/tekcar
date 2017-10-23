@@ -6,18 +6,8 @@
 
 (define (fenv def)
   (match-let
-    ([`(define
-         (,fn ,args ...) : ,t
-         ,body)
-       def])
-    `(,fn .  (,@(map (lambda (arg)
-                       (match-let ([`(,v : ,t) arg]) t))
-                     args) -> ,t))))
-
-(define (aenv arg env)
-  (match-let
-    ([`(,v : ,t) arg])
-    `((,v . ,t) . ,env)))
+    ([`(define (,fn [,vs : ,ts] ...) : ,t ,body) def])
+    `(,fn . ( ,@ts -> ,t))))
 
 (define (typecheck env)
   (lambda (e)
@@ -29,10 +19,10 @@
             ([(e* t*) ((typecheck env) e)])
             `(program (type ,t*) ,@(map (typecheck env) ds) ,e*)))]
       [`(define (,fn ,args ...) : ,t ,e)
-        (let
-          ([env (foldr aenv env args)])
+        (match-let
+          ([`([,vs : ,ts] ...) args])
           (let-values
-            ([(e* t*) ((typecheck env) e)])
+            ([(e* t*) ((typecheck (append (map cons vs ts) env)) e)])
             (if (equal? t t*)
               `(define (,fn ,@args) : ,t ,e*)
               (error 'typecheck "function ~a type mismatch" fn))))]
@@ -109,7 +99,7 @@
           ['(Boolean Boolean) (values `(has-type (and ,@e*) Boolean) 'Boolean)]
           [else (error 'typecheck "'and' expects two Booleans in ~s" e)])]
       [`(,cmp ,(app (typecheck env) e* t*) ...)
-        #:when (set-member? (set '< '> '<= '>= 'eq?) cmp)
+        #:when (set-member? (set '< '> '<= '>=) cmp)
         (match t*
           ['(Integer Integer) (values `(has-type (and ,@e*) Boolean) 'Boolean)]
           [else (error 'typecheck (~a "'" cmp "' expects two Integers in ~s" e))])]
