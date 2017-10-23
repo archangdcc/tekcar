@@ -307,6 +307,7 @@
      ['e
       (define eflags ((interp-x86-exp env) '(reg __flag)))
       (arithmetic-shift (bitwise-and eflags #b1000000) -6)]
+     ['ne (- 1 (eflags-status env 'e))]
      ['le
           ;; Get the value of the lt flag which doesn't actually exist
           ;; the lt flag is simulated by overflow == sign for x86
@@ -318,12 +319,8 @@
       (if (and (eq? 0 (eflags-status env 'e))
           (eq? 1 (eflags-status env 'le)))
           1 0)]
-     ['g
-      (if (not (eq? 1 (eflags-status env 'le)))
-          1 0)]
-     ['ge
-      (if (not (eq? 1 (eflags-status env 'l)))
-          1 0)]))
+     ['g (- 1 (eflags-status env 'le))]
+     ['ge (- 1 (eflags-status env 'l))]))
 
     (define/override (interp-x86 env)
       (lambda (ast)
