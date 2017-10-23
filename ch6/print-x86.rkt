@@ -36,7 +36,7 @@
           (format "\tmovq\t$~a, %rdi\n" rstk-size)
           (format "\tmovq\t$~a, %rsi\n" heap-size)
           "\tcallq\t" (label-name "initialize") "\n"
-          "\tmovq\t" (label-name "rootstack_begin")"(%rip), %r15\n")
+          "\tmovq\t" (label-name "rootstack_begin") "(%rip), %r15\n")
         "")
       "\n")))
 
