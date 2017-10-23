@@ -48,6 +48,10 @@
 ;(newline)
 ;(display "\e[0;34;42mtuple & gc: compile tests passed!\e[0m") (newline)
 
-(debug-level 2)
-(interp-tests "function" typecheck-R4 r4-passes interp-scheme "r4" (range 1 39))
-(display "\e[0;34;42mfunction passed!\e[0m") (newline)
+;(debug-level 2)
+;(interp-tests "function" typecheck-R4 r4-passes interp-scheme "r4" (range 1 39))
+;(display "\e[0;34;42mfunction passed!\e[0m") (newline)
+(debug-level 0)
+(compiler-tests "function" typecheck-R4 r4-passes "r4" (range 1 39))
+(newline)
+(display "\e[0;34;42mfunction: compile tests passed!\e[0m") (newline)

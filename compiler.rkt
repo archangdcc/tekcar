@@ -53,6 +53,7 @@
 (require "ch6/allocate-registers.rkt")
 (require "ch6/lower-conditionals.rkt")
 (require "ch6/patch-instructions.rkt")
+(require "ch6/print-x86.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -163,4 +164,5 @@
      ("allocate-registers" ,allocate-registers-R4 ,interp-x86)
      ("lower-conditionals" ,lower-conditionals-R4 ,interp-x86)
      ("patch-instructions" ,patch-instructions-R4 ,interp-x86)
+     ("print-x86" ,print-x86-R4 #f)
      ))
