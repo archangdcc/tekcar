@@ -8,6 +8,7 @@
 (require "ch4/typecheck.rkt")
 (require "ch5/typecheck.rkt")
 (require "ch6/typecheck.rkt")
+(require "ch7/typecheck.rkt")
 
 
 ;(debug-level 0)
@@ -56,10 +57,15 @@
 ;(interp-tests "function" typecheck-R4 r4-passes interp-scheme "r3" (range 1 36))
 ;(interp-tests "function" typecheck-R4 r4-passes interp-scheme "r4" (range 1 39))
 ;(display "\e[0;34;42mfunction passed!\e[0m") (newline)
-(debug-level 0)
-(compiler-tests "function" typecheck-R4 r4-passes "r1" (range 1 32))
-(compiler-tests "function" typecheck-R4 r4-passes "r2" (range 1 63))
-(compiler-tests "function" typecheck-R4 r4-passes "r3" (range 1 36))
-(compiler-tests "function" typecheck-R4 r4-passes "r4" (range 1 39))
-(newline)
-(display "\e[0;34;42mfunction: compile tests passed!\e[0m") (newline)
+;(debug-level 0)
+;(compiler-tests "function" typecheck-R4 r4-passes "r1" (range 1 32))
+;(compiler-tests "function" typecheck-R4 r4-passes "r2" (range 1 63))
+;(compiler-tests "function" typecheck-R4 r4-passes "r3" (range 1 36))
+;(compiler-tests "function" typecheck-R4 r4-passes "r4" (range 1 39))
+;(newline)
+;(display "\e[0;34;42mfunction: compile tests passed!\e[0m") (newline)
+
+
+(debug-level 2)
+(interp-tests "lambda" typecheck-R5 r5-passes interp-scheme "r5" (range 1 13))
+(display "\e[0;34;42mlambda passed!\e[0m") (newline)

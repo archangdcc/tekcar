@@ -62,6 +62,7 @@
 (provide r2-passes)
 (provide r3-passes)
 (provide r4-passes)
+(provide r5-passes)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
@@ -165,4 +166,8 @@
      ("lower-conditionals" ,lower-conditionals-R4 ,interp-x86)
      ("patch-instructions" ,patch-instructions-R4 ,interp-x86)
      ("print-x86" ,print-x86-R4 #f)
+     ))
+
+(define r5-passes
+  `(
      ))
