@@ -77,7 +77,12 @@
     [`(jmp-if ,cc ,label) (format "\tj~a\t~a" cc label)]
     [`(jmp ,label) (format "\tjmp\t~a" label)]
     [`(indirect-callq ,e) (format "\tcallq\t*~a" (print-x86 e))]
-    [`(callq ,label) (format "\tcallq\t~a" (label-name label))]
+    [`(callq ,label)
+      (format
+        "\tcallq\t~a"
+        (if (set-member? builtin-funs label)
+          (label-name label)
+          label))]
     [`(label ,label) (format "~a:" label)]
     [`(function-ref ,label) (format "~a(%rip)" label)]
     [`(,op (stack-arg ,n) ,e)

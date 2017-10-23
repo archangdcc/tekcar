@@ -12,7 +12,8 @@
          callee-regs caller-regs all-regs arg-regs
          caller-num reg-num arg-num
          color->reg reg->color
-         cc ncc R4-ops heap-size rstk-size add-edge*)
+         cc ncc R4-ops heap-size rstk-size add-edge*
+         builtin-funs)
 
 (define (remove-bad-symbol y)
   (string->symbol
@@ -169,3 +170,6 @@
            (set-member? callee-save y)))
      (void)]
     [else (add-edge graph x y)]))
+
+(define builtin-funs
+  (set 'malloc 'alloc 'collect 'initialize 'read_int))

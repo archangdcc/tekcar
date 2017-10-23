@@ -79,6 +79,13 @@
       [`(assign ,lhs (function-ref ,f))
         `((leaq (function-ref ,f) (var ,lhs)) .
           ,tail)]
+      [`(assign ,lhs (app (function-ref ,f) ,args ...))
+        (let* ([instrs (caller-move-args args arg-regs)])
+          (set-box! maxstack (max (unbox maxstack) (- (length args) arg-num)))
+          `(,@instrs
+             (callq ,f)
+             (movq (reg rax) (var ,lhs)) .
+             ,tail))]
       [`(assign ,lhs (app ,fn ,args ...))
         (let* ([instrs (caller-move-args args arg-regs)])
           (set-box! maxstack (max (unbox maxstack) (- (length args) arg-num)))

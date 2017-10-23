@@ -110,6 +110,13 @@
            ,var ,type
            (defines ,@(map flat ds))
            ,@(append assign `((return ,ret)))))]
+    [`(app (has-type (function-ref ,fn) ,t) ,es ...)
+      (let-values
+        ([(rets assigns vars) (map3 (malloc flat) es)])
+        (values
+          `(app (function-ref ,fn) . ,rets)
+          (append* assigns)
+          (append* vars)))]
     [`(,op ,es ...)
       (let-values
         ([(rets assigns vars) (map3 (malloc flat) es)])     ;; only assign to non-arg in op clause
