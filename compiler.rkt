@@ -57,6 +57,7 @@
 
 (require "ch7/uniquify.rkt")
 (require "ch7/reveal-functions.rkt")
+(require "ch7/convert-to-closures.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -174,4 +175,16 @@
 (define r5-passes
   `( ("uniquify" ,uniquify-R5 ,interp-scheme)
      ("reveal-functions" ,reveal-functions-R5 ,interp-F)
+     ("convert-to-closures" ,convert-to-closures ,interp-F)
+     ("expose-alloction" ,expose-allocation-R4 ,interp-F)
+     ("flatten" ,flatten-R4 ,interp-C)
+     ("select-instructions" ,select-instructions-R4 ,interp-x86)
+     ("uncover-live" ,uncover-live-R4 ,interp-x86)
+     ("uncover-null" ,uncover-null-R4 ,interp-x86)
+     ("build-interference" ,build-interference-R4 ,interp-x86)
+     ("build-move" ,build-move-R4 ,interp-x86)
+     ("allocate-registers" ,allocate-registers-R4 ,interp-x86)
+     ("lower-conditionals" ,lower-conditionals-R4 ,interp-x86)
+     ("patch-instructions" ,patch-instructions-R4 ,interp-x86)
+     ("print-x86" ,print-x86-R4 #f)
      ))

@@ -66,6 +66,10 @@
 ;(display "\e[0;34;42mfunction: compile tests passed!\e[0m") (newline)
 
 
-(debug-level 2)
-(interp-tests "lambda" typecheck-R5 r5-passes interp-scheme "r5" (range 1 13))
-(display "\e[0;34;42mlambda passed!\e[0m") (newline)
+;(debug-level 2)
+;(interp-tests "lambda" typecheck-R5 r5-passes interp-scheme "r5" (range 1 13))
+;(display "\e[0;34;42mlambda passed!\e[0m") (newline)
+(debug-level 0)
+(compiler-tests "lambda" typecheck-R4 r4-passes "r4" (range 1 13))
+(newline)
+(display "\e[0;34;42mlambda: compile tests passed!\e[0m") (newline)
