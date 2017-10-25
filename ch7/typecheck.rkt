@@ -123,9 +123,5 @@
           [_ (error 'typecheck "expects a function in ~s" e)])]
       )))
 
-(define (typecheck-R4 p)
-  ((typecheck '()) p))
-
-
 (define (typecheck-R5 p)
   ((typecheck '()) p))
