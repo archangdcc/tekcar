@@ -59,6 +59,8 @@
 (require "ch7/reveal-functions.rkt")
 (require "ch7/convert-to-closures.rkt")
 
+(require "ch8/entype.rkt")
+
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
 (provide r1-passes)
@@ -67,6 +69,7 @@
 (provide r3-passes)
 (provide r4-passes)
 (provide r5-passes)
+(provide r7-passes)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
@@ -187,4 +190,8 @@
      ("lower-conditionals" ,lower-conditionals-R4 ,interp-x86)
      ("patch-instructions" ,patch-instructions-R4 ,interp-x86)
      ("print-x86" ,print-x86-R4 #f)
+     ))
+
+(define r7-passes
+  `( ("entype" ,entype ,interp-scheme)
      ))
