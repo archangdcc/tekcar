@@ -79,12 +79,12 @@
              (project ,((ent fns) e₂) Integer))
           Integer)]
       [`(not ,e)
-       `(if (eq? ,((ent fns) e) ((ent fns) #f Boolean))
-          ((ent fns) #t Boolean)
-          ((ent fns) #f Boolean))]
+       `(if (eq? ,((ent fns) e) (inject #f Boolean))
+          (inject #t Boolean)
+          (inject #f Boolean))]
       [`(and ,e₁ ,e₂)
        `(let ([tmp ,((ent fns) e₁)])
-          (if (eq? tmp ((ent fns) #f Boolean))
+          (if (eq? tmp (inject #f Boolean))
             tmp ,((ent fns) e₂)))]
       [`(eq? ,e₁ ,e₂)
         `(inject
