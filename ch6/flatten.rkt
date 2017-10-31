@@ -39,7 +39,7 @@
                    ,(append assign_t `((assign ,y ,ret_t)))
                    ,(append assign_e `((assign ,y ,ret_e))))))
               (append var_c `((,y . ,(caddr thns))) var_t var_e))))]
-        [`(and ,x ,y) (flat-if `(if ,x ,y (has-type #f Boolean)) thns elss)]
+        [`(and ,x ,y) (flat-if `(has-type (if ,x ,y (has-type #f Boolean)) Boolean) thns elss)]
         [`(not ,condition )
           (flat-if condition elss thns)]
         [`(,cmp ,a ,b)

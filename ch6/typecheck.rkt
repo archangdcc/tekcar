@@ -81,7 +81,7 @@
           [else (error 'typecheck "'-' expects an Integer in ~s" e)])]
       [`(not ,(app (typecheck env) e₀ t₀))
         (match t₀
-          ['Boolean (values `(has-type (- ,e₀) Boolean) 'Boolean)]
+          ['Boolean (values `(has-type (not ,e₀) Boolean) 'Boolean)]
           [else (error 'typecheck "'not' expects a Boolean in ~s" e)])]
       [`(if ,(app (typecheck env) e* t*) ...)
         (match t*
@@ -101,7 +101,7 @@
       [`(,cmp ,(app (typecheck env) e* t*) ...)
         #:when (set-member? (set '< '> '<= '>=) cmp)
         (match t*
-          ['(Integer Integer) (values `(has-type (and ,@e*) Boolean) 'Boolean)]
+          ['(Integer Integer) (values `(has-type (,cmp ,@e*) Boolean) 'Boolean)]
           [else (error 'typecheck (~a "'" cmp "' expects two Integers in ~s" e))])]
       [`(,(app (typecheck env) f tf) ,(app (typecheck env) e* t*) ...)
         (match tf
