@@ -36,7 +36,10 @@
                 (for-each
                   (lambda (r)
                     (add-edge* graph r v))
-                  caller-regs)))
+                  (if
+                    (let ([t (lookup v vars v)])
+                      (and (pair? t) (eq? (car t) 'Vector)))
+                    all-regs caller-regs))))
             instr)]
         [`(callq ,label)
           (begin
@@ -46,7 +49,9 @@
                   (lambda (r)
                     (add-edge* graph r v))
                   (if (and
-                        (eq? label 'collect)
+                        (or
+                          (eq? label 'collect)
+                          (not (set-member? builtin-funs label)))
                         (let ([t (lookup v vars v)])
                           (and
                             (pair? t)
