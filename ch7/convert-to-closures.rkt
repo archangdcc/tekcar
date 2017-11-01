@@ -122,24 +122,9 @@
           `(has-type (if ,cond* ,thns* ,elss*) ,(caddr thns*))
           (append cloc clot cloe)))]
     [`(has-type (,op ,es ...) ,t)
-    ;  #:when (set-member? R4-ops op)
       (let-values
         ([(es clos) (map2 convert-to-closures es)])
         (values
           `(has-type (,op ,@es) ,t)
           (append* clos)))]
-    ;[`(has-type (,es ...) ,t)
-    ;  (let-values
-    ;    ([(es clos) (map2 convert-to-closures es)])
-    ;    (values es (append* clos)))]
-    [_ (values e '())]
-    ;[`(has-type ,e ,t)
-    ;  (let-values
-    ;    ([(e clos) (convert-to-closures e)])
-    ;    (values
-    ;      `(has-type ,e ,t)
-    ;      clos))]
-    ;[(? integer?) (values e '())]
-    ;[(? boolean?) (values e '())]
-    ;[(? symbol?) (values e '())]))
-    ))
+    [_ (values e '())]))
