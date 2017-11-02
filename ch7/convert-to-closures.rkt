@@ -5,6 +5,16 @@
 
 (provide convert-to-closures)
 
+(define (assign-args args vs e t)
+  (cond
+    [(null? args) e]
+    [else
+      `(has-type
+         (let
+           ([,(car args) ,(car vs)])
+           ,(assign-args (cdr args) (cdr vs) e t))
+         ,t)]))
+
 (define (assign-fvs e t fvs n)
   (cond
     [(null? fvs) e]
@@ -60,6 +70,18 @@
                 (,fn [clos : ,tc] ,@(map (lambda (v t) `[,v : ,t]) vs ts*)) : ,t*
                 ,(assign-fvs e t* fvs 1))
               ,@clos))))]
+    [`(has-type (app (has-type (function-ref ,f) ,tf) ,es ...) ,t)
+      (let-values ([(es clos) (map2 convert-to-closures es)])
+        (let* ([f* (string->symbol (format "~s.direct" f))]
+               [t* (function-to-closure-type t)]
+               [tf* `(,@(map caddr es) -> ,t*)])
+          (values
+            `(has-type (app (has-type (function-ref ,f*) ,tf*) ,@es) ,t*)
+            (append* clos))))]
+    [`(has-type (app (has-type (lambda: ([,vs : ,ts] ...) : ,t ,e) ,tl) ,es ...) ,t)
+      (let-values ([(e clo) (convert-to-closures e)]
+                   [(es clos) (map2 convert-to-closures es)])
+        (values (assign-args vs es e (caddr e)) `(,@clo ,@(append* clos))))]
     [`(has-type (app ,f ,es ...) ,t)
       (let-values
         ([(f clof) (convert-to-closures f)]
@@ -101,18 +123,22 @@
             `(,@cloe ,@clob))))]
     [`(define (,fn [,vs : ,ts] ...) : ,t ,e)
       (let-values ([(e clos) (convert-to-closures e)])
-        (let ([t* (caddr e)])
+        (let* ([t* (caddr e)]
+               [fn* (string->symbol (format "~s.direct" fn))]
+               [ts* (map function-to-closure-type ts)]
+               [args (map (lambda (v t) `[,v : ,t]) vs ts*)])
           (values
-            `(define (,fn [clos : (Vector _)]
-                          ,@(map (lambda (v t)
-                                   `[,v : ,(function-to-closure-type t)])
-                                 vs ts)) : ,t* ,e)
-            clos)))]
+            `(define (,fn* ,@args) : ,t* ,e)
+            `((define (,fn [clos : (Vector _)] ,@args) : ,t*
+               (has-type
+                 (app (has-type (function-ref ,fn*) (,@ts* -> ,t*))
+                    ,@(map (lambda (v t) `(has-type ,v ,t)) vs ts))
+                 ,t*)) ,@clos))))]
     [`(program ,type ,ds ... ,e)
       (let-values
-        ([(ds clods) (map2 convert-to-closures ds)]
-         [(e cloe) (convert-to-closures e)])
-        `(program ,type ,@(append* clods) ,@ds ,@cloe ,e))]
+        ([(ds* clods) (map2 convert-to-closures ds)]
+         [(e* cloe) (convert-to-closures e)])
+        `(program ,type ,@(append* clods) ,@ds* ,@cloe ,e*))]
     [`(has-type (if ,condition ,thns ,elss) ,t)
       (let-values
         ([(cond* cloc) (convert-to-closures condition)]
