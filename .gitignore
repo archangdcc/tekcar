@@ -1,4 +1,4 @@
-a.out*
+*.out
 runtime.o
 tests/*.s
 *.swp
