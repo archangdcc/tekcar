@@ -384,15 +384,21 @@ void cheney(int64_t** rootstack_ptr)
 */
 void copy_vector(int64_t** vector_ptr_loc)
 {
-	if (is_forwarding(**vector_ptr_loc))
-		*vector_ptr_loc = (int64_t *)**vector_ptr_loc;
+	int64_t* vector_ptr = (int64_t *)((int64_t)(*vector_ptr_loc) & (~ ANY_TAG_MASK));
+	int64_t tag = (int64_t)(*vector_ptr_loc) & ANY_TAG_MASK;
+
+	if (! is_ptr(*vector_ptr_loc))
+		return;
+
+	if (is_forwarding(*vector_ptr))
+		*vector_ptr_loc = (int64_t *)(*vector_ptr | tag);
 	else {
-		int length = get_length(**vector_ptr_loc);
+		int length = get_length(*vector_ptr);
 		int64_t *new_ptr = free_ptr;
 		for (int i = 0; i < length + 1; i++)
-			*(free_ptr++) = *(*vector_ptr_loc + i);
-		**vector_ptr_loc = (int64_t)new_ptr;
-		*vector_ptr_loc = new_ptr;
+			*(free_ptr++) = *(vector_ptr + i);
+		*vector_ptr = (int64_t)new_ptr;
+		*vector_ptr_loc = (int64_t *)((int64_t)new_ptr | tag);
 	}
 }
 
