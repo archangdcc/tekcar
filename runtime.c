@@ -316,10 +316,13 @@ void cheney(int64_t** rootstack_ptr)
 	while (queue < free_ptr) {
 		int length = get_length(*queue);
 		int64_t ptr_bits = get_ptr_bitfield(*queue);
-		for (int i = 0; i < length; i++)
-			if (ptr_bits & (1 << i))
-				copy_vector((int64_t **)(queue + i + 1));
-		queue += length + 1;
+		queue++;
+		for (int i = 0; i < length; i++) {
+			if (ptr_bits & 1)
+				copy_vector((int64_t **)queue);
+			ptr_bits >>= 1;
+			queue++;
+		}
 	}
 
 	int64_t *tmp = fromspace_begin;
@@ -384,11 +387,14 @@ void cheney(int64_t** rootstack_ptr)
 */
 void copy_vector(int64_t** vector_ptr_loc)
 {
-	int64_t* vector_ptr = (int64_t *)((int64_t)(*vector_ptr_loc) & (~ ANY_TAG_MASK));
-	int64_t tag = (int64_t)(*vector_ptr_loc) & ANY_TAG_MASK;
+	int64_t* vector_ptr;
+	int64_t tag;
 
 	if (! is_ptr(*vector_ptr_loc))
 		return;
+
+	vector_ptr = to_ptr(*vector_ptr_loc);
+	tag = any_tag((int64_t)*vector_ptr_loc);
 
 	if (is_forwarding(*vector_ptr))
 		*vector_ptr_loc = (int64_t *)(*vector_ptr | tag);
