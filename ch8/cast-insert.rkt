@@ -3,7 +3,7 @@
 (require "../global.rkt")
 (require "../utilities.rkt")
 
-(provide entype)
+(provide cast-insert)
 
 (define (append-any v) `(,v : Any))
 
@@ -14,7 +14,7 @@
     ([`(define (,fn ,arg ...) ,e) def])
     (cons `(,fn . (,@(map any arg) -> Any)) fns)))
 
-(define (ent fns)
+(define (cast fns)
   (lambda (e)
     (match e
       [(? boolean?)
@@ -26,9 +26,9 @@
          (if t `(inject ,e ,t) e))]
       [`(program ,ds ... ,e)
         (let* ([fns (foldr addf fns ds)]
-               [e ((ent fns) e)])
+               [e ((cast fns) e)])
           `(program
-             ,@(map (ent fns) ds)
+             ,@(map (cast fns) ds)
              ,e))]
             ; (let ([ans ,e])
             ;   (if (boolean? ans)
@@ -44,68 +44,68 @@
             ;     ))))))))]
       [`(define (,fn ,vars ...) ,e)
        `(define (,fn ,@(map append-any vars))
-          : Any ,((ent fns) e))]
+          : Any ,((cast fns) e))]
       [`(lambda ,vars ,e)
        `(inject
           (lambda: ,(map append-any vars)
-            : Any ,((ent fns) e))
+            : Any ,((cast fns) e))
           (,@(map any vars) -> Any))]
       [`(let ([,v ,e]) ,b)
-       `(let ([,v ,((ent fns) e)]) ,((ent fns) b))]
+       `(let ([,v ,((cast fns) e)]) ,((cast fns) b))]
       [`(read) `(inject (read) Integer)]
       [`(void) `(inject (void) Void)]
       [`(vector ,es ...)
        `(inject
-          (vector ,@(map (ent fns) es))
+          (vector ,@(map (cast fns) es))
           (Vectorof Any))]
       [`(vector-ref ,e₁ ,e₂)
        `(vector-ref
-          (project ,((ent fns) e₁) (Vectorof Any))
-          (project ,((ent fns) e₂) Integer))]
+          (project ,((cast fns) e₁) (Vectorof Any))
+          (project ,((cast fns) e₂) Integer))]
       [`(vector-set! ,e₁ ,e₂ ,e₃)
        `(inject
           (vector-set!
-            (project ,((ent fns) e₁) (Vectorof Any))
-            (project ,((ent fns) e₂) Integer)
-            ,((ent fns) e₃))
+            (project ,((cast fns) e₁) (Vectorof Any))
+            (project ,((cast fns) e₂) Integer)
+            ,((cast fns) e₃))
           Void)]
       [`(- ,e)
        `(inject
-          (- (project ,((ent fns) e) Integer))
+          (- (project ,((cast fns) e) Integer))
           Integer)]
       [`(+ ,e₁ ,e₂)
        `(inject
-          (+ (project ,((ent fns) e₁) Integer)
-             (project ,((ent fns) e₂) Integer))
+          (+ (project ,((cast fns) e₁) Integer)
+             (project ,((cast fns) e₂) Integer))
           Integer)]
       [`(not ,e)
-       `(if (eq? ,((ent fns) e) (inject #f Boolean))
+       `(if (eq? ,((cast fns) e) (inject #f Boolean))
           (inject #t Boolean)
           (inject #f Boolean))]
       [`(and ,e₁ ,e₂)
-       `(let ([tmp ,((ent fns) e₁)])
+       `(let ([tmp ,((cast fns) e₁)])
           (if (eq? tmp (inject #f Boolean))
-            tmp ,((ent fns) e₂)))]
+            tmp ,((cast fns) e₂)))]
       [`(eq? ,e₁ ,e₂)
         `(inject
            (eq?
-             ,((ent fns) e₁)
-             ,((ent fns) e₂))
+             ,((cast fns) e₁)
+             ,((cast fns) e₂))
            Boolean)]
       [`(,cmp ,e₁ ,e₂)
         #:when (set-member? (set '< '> '<= '>=) cmp)
        `(inject
-          (,cmp (project ,((ent fns) e₁) Integer)
-                (project ,((ent fns) e₂) Integer))
+          (,cmp (project ,((cast fns) e₁) Integer)
+                (project ,((cast fns) e₂) Integer))
           Boolean)]
       [`(if ,c ,e₁ ,e₂)
-       `(if (eq? ,((ent fns) c) (inject #f Boolean))
-          ,((ent fns) e₂)
-          ,((ent fns) e₁))]
+       `(if (eq? ,((cast fns) c) (inject #f Boolean))
+          ,((cast fns) e₂)
+          ,((cast fns) e₁))]
       [`(,f ,es ...)
-       `((project ,((ent fns) f) (,@(map any es) -> Any))
-         ,@(map (ent fns) es))]
+       `((project ,((cast fns) f) (,@(map any es) -> Any))
+         ,@(map (cast fns) es))]
       [_ e])))
 
-(define (entype e)
-  ((ent '()) e))
+(define (cast-insert e)
+  ((cast '()) e))

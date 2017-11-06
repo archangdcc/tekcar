@@ -59,7 +59,8 @@
 (require "ch7/reveal-functions.rkt")
 (require "ch7/convert-to-closures.rkt")
 
-(require "ch8/entype.rkt")
+(require "ch8/cast-insert.rkt")
+(require "ch8/typecheck.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -193,5 +194,6 @@
      ))
 
 (define r7-passes
-  `( ("entype" ,entype ,interp-scheme)
+  `( ("cast-insert" ,cast-insert ,interp-scheme)
+     ("typecheck" ,typecheck-R6 ,interp-scheme)
      ))
