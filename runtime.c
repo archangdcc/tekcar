@@ -302,36 +302,36 @@ static void copy_vector(int64_t** vector_ptr_loc);
 
 void cheney(int64_t** rootstack_ptr)
 {
-	int64_t *queue = tospace_begin;
-	int64_t **walk = rootstack_begin;
+  int64_t *queue = tospace_begin;
+  int64_t **walk = rootstack_begin;
 
-	free_ptr = tospace_begin;
+  free_ptr = tospace_begin;
 
-	while (walk < rootstack_ptr) {
-		if (*walk)
-			copy_vector(walk);
-		walk++;
-	}
+  while (walk < rootstack_ptr) {
+    if (*walk)
+      copy_vector(walk);
+    walk++;
+  }
 
-	while (queue < free_ptr) {
-		int length = get_length(*queue);
-		int64_t ptr_bits = get_ptr_bitfield(*queue);
-		queue++;
-		for (int i = 0; i < length; i++) {
-			if (ptr_bits & 1)
-				copy_vector((int64_t **)queue);
-			ptr_bits >>= 1;
-			queue++;
-		}
-	}
+  while (queue < free_ptr) {
+    int length = get_length(*queue);
+    int64_t ptr_bits = get_ptr_bitfield(*queue);
+    queue++;
+    for (int i = 0; i < length; i++) {
+      if (ptr_bits & 1)
+        copy_vector((int64_t **)queue);
+      ptr_bits >>= 1;
+      queue++;
+    }
+  }
 
-	int64_t *tmp = fromspace_begin;
-	fromspace_begin = tospace_begin;
-	tospace_begin = tmp;
+  int64_t *tmp = fromspace_begin;
+  fromspace_begin = tospace_begin;
+  tospace_begin = tmp;
 
-	tmp = fromspace_end;
-	fromspace_end = tospace_end;
-	tospace_end = tmp;
+  tmp = fromspace_end;
+  fromspace_end = tospace_end;
+  tospace_end = tmp;
 }
 
 
@@ -387,25 +387,25 @@ void cheney(int64_t** rootstack_ptr)
 */
 void copy_vector(int64_t** vector_ptr_loc)
 {
-	int64_t* vector_ptr;
-	int64_t tag;
+  int64_t* vector_ptr;
+  int64_t tag;
 
-	if (! is_ptr(*vector_ptr_loc))
-		return;
+  if (! is_ptr(*vector_ptr_loc))
+    return;
 
-	vector_ptr = to_ptr(*vector_ptr_loc);
-	tag = any_tag((int64_t)*vector_ptr_loc);
+  vector_ptr = to_ptr(*vector_ptr_loc);
+  tag = any_tag((int64_t)*vector_ptr_loc);
 
-	if (is_forwarding(*vector_ptr))
-		*vector_ptr_loc = (int64_t *)(*vector_ptr | tag);
-	else {
-		int length = get_length(*vector_ptr);
-		int64_t *new_ptr = free_ptr;
-		for (int i = 0; i < length + 1; i++)
-			*(free_ptr++) = *(vector_ptr + i);
-		*vector_ptr = (int64_t)new_ptr;
-		*vector_ptr_loc = (int64_t *)((int64_t)new_ptr | tag);
-	}
+  if (is_forwarding(*vector_ptr))
+    *vector_ptr_loc = (int64_t *)(*vector_ptr | tag);
+  else {
+    int length = get_length(*vector_ptr);
+    int64_t *new_ptr = free_ptr;
+    for (int i = 0; i < length + 1; i++)
+      *(free_ptr++) = *(vector_ptr + i);
+    *vector_ptr = (int64_t)new_ptr;
+    *vector_ptr_loc = (int64_t *)((int64_t)new_ptr | tag);
+  }
 }
 
 
