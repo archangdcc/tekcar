@@ -2,7 +2,7 @@
 
 (require "../global.rkt")
 
-(provide select-instructions-R4)
+(provide select-instructions-R6)
 
 
 (define (select-arg arg)
@@ -19,10 +19,22 @@
           (match type
             [`(Vector . ,ts)
               (bitwise-ior (arithmetic-shift tag 1) 1)]
+            ['Any
+              (bitwise-ior (arithmetic-shift tag 1) 1)]
             [_ (arithmetic-shift tag 1)]))
         0 types) 7)
     (arithmetic-shift n 1)
     1))
+
+(define (anytag t)
+  (match t
+    ['Integer 1]
+    ['Boolean 4]
+    ['Void 5]
+    [_ (match (car t)
+         ['Vector 2]
+         ['Vectorof 2]
+         [_ 3])]))
 
 (define (caller-move-args vs regs)
   (cond
@@ -51,6 +63,43 @@
 (define (select-instr maxstack)
   (lambda (instr tail)
     (match instr
+      [`(assign ,lhs (inject ,v Void))
+       `((movq (int 5) (var ,lhs)) . ,tail)]
+      [`(assign ,lhs (inject ,v ,t))
+        #:when (or (equal? t 'Integer) (equal? t 'Boolean))
+       `((movq ,(select-arg v) (var ,lhs))
+         (salq (int 3) (var ,lhs))
+         (orq (int ,(anytag t)) (var ,lhs)) .
+         ,tail)]
+      [`(assign ,lhs (inject ,v ,t))
+       `((movq ,(select-arg v) (var ,lhs))
+         (orq (int ,(anytag t)) (var ,lhs)) .
+         ,tail)]
+      [`(assign ,lhs (project ,v Void))
+       `((movq ,(select-arg v) (var ,lhs))
+         (andq (int 7) (var ,lhs))
+         (if (eq? (var ,lhs) (int 5))
+           ((movq (int 0) (var ,lhs)))
+           ((callq exit))) .
+         ,tail)]
+      [`(assign ,lhs (project ,v ,t))
+        #:when (or (equal? t 'Integer) (equal? t 'Boolean))
+       `((movq ,(select-arg v) (var ,lhs))
+         (andq (int 7) (var ,lhs))
+         (if (eq? (var ,lhs) (int ,(anytag t)))
+           ((movq ,(select-arg v) (var ,lhs))
+            (sarq (int 3) (var ,lhs)))
+           ((callq exit))) .
+         ,tail)]
+      [`(assign ,lhs (project ,v ,t))
+       `((movq ,(select-arg v) (var ,lhs))
+         (andq (int 7) (var ,lhs))
+         (if (eq? (var ,lhs) (int ,(anytag t)))
+           ((movq (int 7) (var ,lhs))
+            (notq (var ,lhs))
+            (andq ,(select-arg v) (var ,lhs)))
+           ((callq exit))) .
+         ,tail)]
       [`(assign ,lhs (void))
        `((movq (int 0) (var ,lhs)) .
          ,tail)]
@@ -59,12 +108,30 @@
          ,tail)]
       [`(assign ,lhs (vector-ref ,vec ,n))
        `((movq ,(select-arg vec) (reg ,vec-reg))
-         (movq (deref ,vec-reg ,(* 8 (+ n 1))) (var ,lhs)) .
+         (movq (deref ,vec-reg 0) (reg ,temp-reg))
+         (andq (int 126) (reg ,temp-reg))
+         (sarq (int 1) (reg ,temp-reg))
+         (if (< (reg ,temp-reg) ,(select-arg n))
+           ((callq exit))
+           ((movq ,(select-arg n) (reg ,temp-reg))
+            (addq (int 1) (reg ,temp-reg))          ;; n+1,  use incq?
+            (salq (int 3) (reg ,temp-reg))          ;; (n+1)*8
+            (addq (reg ,temp-reg) (reg ,vec-reg))
+            (movq (deref ,vec-reg 0) (var ,lhs)))) .
          ,tail)]
       [`(assign ,lhs (vector-set! ,vec ,n ,arg))
        `((movq ,(select-arg vec) (reg ,vec-reg))
-         (movq ,(select-arg arg) (deref ,vec-reg ,(* 8 (+ n 1))))
-         (movq (int 0) (var ,lhs)) .
+         (movq (deref ,vec-reg 0) (reg ,temp-reg))
+         (andq (int 126) (reg ,temp-reg))
+         (sarq (int 1) (reg ,temp-reg))
+         (if (< (reg ,temp-reg) ,(select-arg n))
+           ((callq exit))
+           ((movq ,(select-arg n) (reg ,temp-reg))
+            (addq (int 1) (reg ,temp-reg))          ;; n+1,  use incq?
+            (salq (int 3) (reg ,temp-reg))          ;; (n+1)*8
+            (addq (reg ,temp-reg) (reg ,vec-reg))
+            (movq ,(select-arg arg) (deref ,vec-reg 0))
+            (movq (int 0) (var ,lhs)))) .
          ,tail)]
       [`(assign ,lhs (allocate ,n (Vector . ,types)))
        `((movq (global-value free_ptr) (var ,lhs))
@@ -138,7 +205,7 @@
         `((movq ,(select-arg y) (reg ,return-reg)) .
           ,tail)])))
 
-(define (select-instructions-R4 e)
+(define (select-instructions-R6 e)
   (match e
     [`(define (,label [,vs : ,ts] ...) : ,t
         ,vars ,instrs ...)
@@ -154,5 +221,5 @@
                (foldr (select-instr maxstack) '() instrs)])
         `(program
            (,vars ,(unbox maxstack)) ,type
-           (defines ,@(map select-instructions-R4 ds))
+           (defines ,@(map select-instructions-R6 ds))
            ,@x86*-instrs))]))

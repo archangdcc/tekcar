@@ -64,6 +64,7 @@
 (require "ch8/uniquify.rkt")
 (require "ch8/reveal-functions.rkt")
 (require "ch8/flatten.rkt")
+(require "ch8/select-instructions.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -204,4 +205,5 @@
      ("convert-to-closures" ,convert-to-closures ,interp-F)
      ("expose-alloction" ,expose-allocation-R4 ,interp-F)
      ("flatten" ,flatten-R6 ,interp-C)
+     ("select-instructions" ,select-instructions-R6 ,interp-x86)
      ))
