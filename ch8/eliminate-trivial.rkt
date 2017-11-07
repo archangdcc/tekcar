@@ -28,12 +28,6 @@
           `(program
              ,@(map (elim fns) ds)
              ,e))]
-      ;[`(define (,fn ,vars ...) : ,tf ,e)
-      ; `(define (,fn ,@vars) : ,tf ,((elim fns) e))]
-      ;[`(lambda: ,vars : ,t ,e)
-      ; `(lambda: ,vars : ,t ,((elim fns) e))]
-      ;[`(let ([,v ,e]) ,b)
-      ; `(let ([,v ,((elim fns) e)]) ,((elim fns) b))]
       [`(,es ...)
         (map (elim fns) es)]
       [_ e])))
