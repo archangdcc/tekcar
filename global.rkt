@@ -175,4 +175,4 @@
   (set 'malloc 'alloc 'collect 'initialize 'read_int))
 
 (define builtin-funs-R6
-  (set 'malloc 'alloc 'collect 'initialize 'read_int 'exit))
+  (set 'malloc 'alloc 'collect 'initialize 'read_int 'exit@plt))

@@ -80,7 +80,7 @@
          (andq (int 7) (var ,lhs))
          (if (eq? (var ,lhs) (int 5))
            ((movq (int 0) (var ,lhs)))
-           ((callq exit))) .
+           ((callq exit@plt))) .
          ,tail)]
       [`(assign ,lhs (project ,v ,t))
         #:when (or (equal? t 'Integer) (equal? t 'Boolean))
@@ -89,7 +89,7 @@
          (if (eq? (var ,lhs) (int ,(anytag t)))
            ((movq ,(select-arg v) (var ,lhs))
             (sarq (int 3) (var ,lhs)))
-           ((callq exit))) .
+           ((callq exit@plt))) .
          ,tail)]
       [`(assign ,lhs (project ,v ,t))
        `((movq ,(select-arg v) (var ,lhs))
@@ -97,7 +97,7 @@
          (if (eq? (var ,lhs) (int ,(anytag t)))
            ((movq (int #xfffffffffffffff8) (var ,lhs))
             (andq ,(select-arg v) (var ,lhs)))
-           ((callq exit))) .
+           ((callq exit@plt))) .
          ,tail)]
       [`(assign ,lhs (void))
        `((movq (int 0) (var ,lhs)) .
@@ -116,7 +116,7 @@
          (andq (int 126) (reg ,temp-reg))
          (sarq (int 1) (reg ,temp-reg))
          (if (<= (reg ,temp-reg) ,(select-arg n))   ;; length -> temp-reg
-           ((callq exit))
+           ((callq exit@plt))
            ((movq ,(select-arg n) (reg ,temp-reg))
             (addq (int 1) (reg ,temp-reg))          ;; n+1,  use incq?
             (salq (int 3) (reg ,temp-reg))          ;; (n+1)*8
@@ -135,7 +135,7 @@
          (andq (int 126) (reg ,temp-reg))
          (sarq (int 1) (reg ,temp-reg))
          (if (<= (reg ,temp-reg) ,(select-arg n))   ;; length -> temp-reg
-           ((callq exit))
+           ((callq exit@plt))
            ((movq ,(select-arg n) (reg ,temp-reg))
             (addq (int 1) (reg ,temp-reg))          ;; n+1,  use incq?
             (salq (int 3) (reg ,temp-reg))          ;; (n+1)*8
