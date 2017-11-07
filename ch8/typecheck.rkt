@@ -20,7 +20,9 @@
         (let-values ([(e* t*) ((typecheck env) e)])
           (cond
             [(equal? t* t)
-             (has-type `(inject ,e* ,t) 'Any)]
+             (values
+               `(has-type (inject ,e* ,t) ,t)
+               'Any)]
             [else
               (error 'typecheck "inject expected ~a to have type ~a" e t)]))]
       [`(project ,e ,t)
