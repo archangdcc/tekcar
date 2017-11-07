@@ -13,33 +13,21 @@
     ([`(define (,fn [,vs : ,ts] ...) : ,t ,body) def])
     `(,fn . ( ,@ts -> ,t))))
 
-(define (type-eq? t₁ t₂)
-  (match* (t₁ t₂)
-    [(`(Vector ,ts ...) `(Vectorof Any)) #t]
-    [(`(Vectorof Any) `(Vector ,ts ...)) #t]
-    [(t 'Any) #t]
-    [('Any t) #t]
-    [(`(,ts₁ ... -> ,t₁) `(,ts₂ ... -> ,t₂))
-     (if (eq? (length ts₁) (length ts₂))
-       (and (type-eq? t₁ t₂) (andmap type-eq? ts₁ ts₂))
-       #f)]
-    [(other wise) (equal? t₁ t₂)]))
-
 (define (typecheck env)
   (lambda (e)
     (match e
       [`(inject ,e ,t)
         (let-values ([(e* t*) ((typecheck env) e)])
           (cond
-            [(type-eq? t* t)
-             (has-type `(inject ,e* ,t*) 'Any)]
+            [(equal? t* t)
+             (has-type `(inject ,e* ,t) 'Any)]
             [else
               (error 'typecheck "inject expected ~a to have type ~a" e t)]))]
       [`(project ,e ,t)
         (let-values ([(e* t*) ((typecheck env) e)])
           (cond
-            [(type-eq? t* 'Any)
-             (has-type `(project ,e ,t) t)]
+            [(equal? t* 'Any)
+             (has-type `(project ,e* ,t) t)]
             [else
               (error 'typecheck "project expected ~a to have type Any" e)]))]
       [`(program ,ds ... ,e)
