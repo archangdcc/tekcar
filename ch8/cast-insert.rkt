@@ -9,10 +9,10 @@
 
 (define (any v) 'Any)
 
-(define (addf def fns)
-  (match-let
-    ([`(define (,fn ,arg ...) ,e) def])
-    (cons `(,fn . (,@(map any arg) -> Any)) fns)))
+(define (addf def)
+  (match def
+    [`(define (,fn ,arg ...) ,e)
+     `(,fn . (,@(map any arg) -> Any))]))
 
 (define (cast fns)
   (lambda (e)
@@ -25,7 +25,7 @@
        (let ([t (lookup e fns #f)])
          (if t `(inject ,e ,t) e))]
       [`(program ,ds ... ,e)
-        (let* ([fns (foldr addf fns ds)]
+        (let* ([fns (map addf ds)]
                [e ((cast fns) e)])
           `(program
              ,@(map (cast fns) ds)
