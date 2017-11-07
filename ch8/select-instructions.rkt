@@ -95,8 +95,7 @@
        `((movq ,(select-arg v) (var ,lhs))
          (andq (int 7) (var ,lhs))
          (if (eq? (var ,lhs) (int ,(anytag t)))
-           ((movq (int 7) (var ,lhs))
-            (notq (var ,lhs))
+           ((movq (int #xfffffffffffffff8) (var ,lhs))
             (andq ,(select-arg v) (var ,lhs)))
            ((callq exit))) .
          ,tail)]
@@ -107,11 +106,16 @@
        `((movq (global-value ,v) (var ,lhs)) .
          ,tail)]
       [`(assign ,lhs (vector-ref ,vec ,n))
+        #:when (integer? n)
+       `((movq ,(select-arg vec) (reg ,vec-reg))
+         (movq (deref ,vec-reg ,(* 8 (+ n 1))) (var ,lhs)) .
+         ,tail)]
+      [`(assign ,lhs (vector-ref ,vec ,n))
        `((movq ,(select-arg vec) (reg ,vec-reg))
          (movq (deref ,vec-reg 0) (reg ,temp-reg))
          (andq (int 126) (reg ,temp-reg))
          (sarq (int 1) (reg ,temp-reg))
-         (if (< (reg ,temp-reg) ,(select-arg n))
+         (if (<= (reg ,temp-reg) ,(select-arg n))   ;; length -> temp-reg
            ((callq exit))
            ((movq ,(select-arg n) (reg ,temp-reg))
             (addq (int 1) (reg ,temp-reg))          ;; n+1,  use incq?
@@ -120,11 +124,17 @@
             (movq (deref ,vec-reg 0) (var ,lhs)))) .
          ,tail)]
       [`(assign ,lhs (vector-set! ,vec ,n ,arg))
+        #:when (integer? n)
+       `((movq ,(select-arg vec) (reg ,vec-reg))
+         (movq ,(select-arg arg) (deref ,vec-reg ,(* 8 (+ n 1))))
+         (movq (int 0) (var ,lhs)) .
+         ,tail)]
+      [`(assign ,lhs (vector-set! ,vec ,n ,arg))
        `((movq ,(select-arg vec) (reg ,vec-reg))
          (movq (deref ,vec-reg 0) (reg ,temp-reg))
          (andq (int 126) (reg ,temp-reg))
          (sarq (int 1) (reg ,temp-reg))
-         (if (< (reg ,temp-reg) ,(select-arg n))
+         (if (<= (reg ,temp-reg) ,(select-arg n))   ;; length -> temp-reg
            ((callq exit))
            ((movq ,(select-arg n) (reg ,temp-reg))
             (addq (int 1) (reg ,temp-reg))          ;; n+1,  use incq?
