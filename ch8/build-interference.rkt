@@ -39,7 +39,10 @@
                     (add-edge* graph r v))
                   (if
                     (let ([t (lookup v vars v)])
-                      (and (pair? t) (eq? (car t) 'Vector)))
+                      (or (eq? t 'Any)
+                          (and (pair? t)
+                               (or (eq? (car t) 'Vectorof)
+                                   (eq? (car t) 'Vector)))))
                     all-regs caller-regs))))
             instr)]
         [`(callq ,label)
@@ -52,11 +55,13 @@
                   (if (and
                         (or
                           (eq? label 'collect)
-                          (not (set-member? builtin-funs label)))
+                          (not (set-member? builtin-funs-R6 label)))
                         (let ([t (lookup v vars v)])
-                          (and
-                            (pair? t)
-                            (eq? (car t) 'Vector))))
+                          (or (eq? t 'Any)
+                              (and
+                                (pair? t)
+                                (or (eq? (car t) 'Vectorof)
+                                    (eq? (car t) 'Vector))))))
                     all-regs caller-regs))))
             instr)]
         [`(,op ... (,tag ,x))   ;; movzbq is handled here
