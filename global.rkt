@@ -13,7 +13,7 @@
          caller-num reg-num arg-num
          color->reg reg->color
          cc ncc R4-ops heap-size rstk-size add-edge*
-         builtin-funs)
+         builtin-funs builtin-funs-R6)
 
 (define (remove-bad-symbol y)
   (string->symbol
@@ -173,3 +173,6 @@
 
 (define builtin-funs
   (set 'malloc 'alloc 'collect 'initialize 'read_int))
+
+(define builtin-funs-R6
+  (set 'malloc 'alloc 'collect 'initialize 'read_int 'exit))
