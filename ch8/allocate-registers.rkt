@@ -5,7 +5,7 @@
 (require "../utilities.rkt")
 (require "../global.rkt")
 
-(provide allocate-registers-R4)
+(provide allocate-registers-R6)
 
 (define (alloc-reg ctbl used-callee used-stk used-rstk)
   (lambda (instr)
@@ -72,6 +72,8 @@
       (if (empty-frqs? frqs)  ;; no move-related found
         (match t
           [`(Vector . ,ts) (min-color-vec sat 0)]  ;; use the maximum negative valid color
+          [`(Vectorof . ,ts) (min-color-vec sat 0)]  ;; use the maximum negative valid color
+          ['Any (min-color-vec sat 0)]  ;; use the maximum negative valid color
           [_ (min-color sat 0)])  ;; use the minimum valid color
         (max-frqs frqs)))))  ;; use the max-freq move-related color
 
@@ -133,7 +135,7 @@
     [`(,op ,arg (null)) tail]
     [_ (cons instr tail)]))
 
-(define (allocate-registers-R4 p)
+(define (allocate-registers-R6 p)
   (match p
     [`(define (,label) ,argc
         (,vars ,maxstack ,itbl ,mtbl ,nulls)
@@ -177,5 +179,5 @@
            (,(set->list used-callee)
             ,(+ (unbox used-stk) maxstack)
             ,(unbox used-rstk)) ,type
-           (defines ,@(map allocate-registers-R4 ds))
+           (defines ,@(map allocate-registers-R6 ds))
            ,@instrs))]))
