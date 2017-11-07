@@ -60,6 +60,7 @@
 (require "ch7/convert-to-closures.rkt")
 
 (require "ch8/cast-insert.rkt")
+(require "ch8/eliminate-trivial.rkt")
 (require "ch8/typecheck.rkt")
 (require "ch8/uniquify.rkt")
 (require "ch8/reveal-functions.rkt")
@@ -204,6 +205,7 @@
 
 (define r7-passes
   `( ("cast-insert" ,cast-insert ,interp-scheme)
+     ("eliminate-trivial" ,eliminate-trivial ,interp-scheme)
      ("typecheck" ,typecheck-R6 ,interp-scheme)
      ("uniquify" ,uniquify-R6 ,interp-scheme)
      ("reveal-functions" ,reveal-functions-R6 ,interp-F)
