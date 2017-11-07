@@ -57,7 +57,7 @@
       [`(vector ,es ...)
        `(inject
           (vector ,@(map (cast fns) es))
-          (Vectorof Any))]
+          (Vector ,@(map any es)))]
       [`(vector-ref ,e₁ ,e₂)
        `(vector-ref
           (project ,((cast fns) e₁) (Vectorof Any))
