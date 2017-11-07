@@ -66,7 +66,7 @@
 
 (define (print-x86 e)
   (match e
-    [`(int ,n) (format "$~a" n)]
+    [`(int ,n) (format "$0x~x" n)]
     [`(reg ,reg) (format "%~a" reg)]
     [`(byte-reg ,reg) (format "%~a" reg)]
     [`(global-value ,name)
@@ -98,18 +98,19 @@
     [`(define (,label) ,argc
         (,used-callee ,used-stk ,used-rstk)
         ,instrs ...)
-      (string-join
-        (map print-x86 instrs) "\n"
-        #:before-first (header label used-callee used-stk used-rstk)
-        #:after-last (footer used-callee used-stk used-rstk #f))]
+      (string-append
+        (string-join
+          (map print-x86 instrs) "\n"
+          #:before-first (header label used-callee used-stk used-rstk)
+          #:after-last (footer used-callee used-stk used-rstk #f))
+        "\n\n")]
     [`(program
         (,used-callee ,used-stk ,used-rstk) ,type
         (defines ,ds ...)
         ,instrs ...)
       (string-append
         (string-join
-          (map print-x86-R6 ds) "\n\n")
-        "\n\n"
+          (map print-x86-R6 ds))
         (string-join
           (map print-x86 instrs) "\n"
           #:before-first (header 'main used-callee used-stk used-rstk)
