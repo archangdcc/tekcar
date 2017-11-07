@@ -63,6 +63,7 @@
 (require "ch8/typecheck.rkt")
 (require "ch8/uniquify.rkt")
 (require "ch8/reveal-functions.rkt")
+(require "ch8/flatten.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -200,4 +201,7 @@
      ("typecheck" ,typecheck-R6 ,interp-scheme)
      ("uniquify" ,uniquify-R6 ,interp-scheme)
      ("reveal-functions" ,reveal-functions-R6 ,interp-F)
+     ("convert-to-closures" ,convert-to-closures ,interp-F)
+     ("expose-alloction" ,expose-allocation-R4 ,interp-F)
+     ("flatten" ,flatten-R6 ,interp-C)
      ))
