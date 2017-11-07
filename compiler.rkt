@@ -61,6 +61,8 @@
 
 (require "ch8/cast-insert.rkt")
 (require "ch8/typecheck.rkt")
+(require "ch8/uniquify.rkt")
+(require "ch8/reveal-functions.rkt")
 
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
@@ -196,4 +198,6 @@
 (define r7-passes
   `( ("cast-insert" ,cast-insert ,interp-scheme)
      ("typecheck" ,typecheck-R6 ,interp-scheme)
+     ("uniquify" ,uniquify-R6 ,interp-scheme)
+     ("reveal-functions" ,reveal-functions-R6 ,interp-F)
      ))
