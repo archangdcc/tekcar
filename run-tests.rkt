@@ -83,6 +83,10 @@
 ;(newline)
 ;(display "\e[0;34;42mlambda: compile tests passed!\e[0m") (newline)
 
-(debug-level 2)
-(interp-tests "dynamic type" #f r7-passes (interp-r7 '()) "r7" (range 1 22))
-(display "\e[0;34;42mdynamic type passed!\e[0m") (newline)
+;(debug-level 2)
+;(interp-tests "dynamic type" #f r7-passes (interp-r7 '()) "r7" (range 1 22))
+;(display "\e[0;34;42mdynamic type passed!\e[0m") (newline)
+(debug-level 0)
+(compiler-tests "dynamic type" #f r7-passes "r7" (range 1 22))
+(newline)
+(display "\e[0;34;42mdynamic type: compile tests passed!\e[0m") (newline)

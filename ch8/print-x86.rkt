@@ -4,7 +4,7 @@
 
 (require "../utilities.rkt")
 
-(provide print-x86-R4)
+(provide print-x86-R6)
 
 
 (define (callee-handler iter ls template)
@@ -40,12 +40,13 @@
         "")
       "\n")))
 
-(define (footer used-callee used-stk used-rstk type)
+(define (footer used-callee used-stk used-rstk main?)
   (string-append
     "\n\n"
-    (if type
+    (if main?
       (string-append
-        (print-by-type (cadr type)) "\n"
+        "\tmovq\t%rax, %rdi\n"
+        "\tcallq\t" (label-name "print_any") "\n"
         "\tmovq\t$0, %rax\n")
       "")
     (if (zero? used-rstk)
@@ -80,7 +81,7 @@
     [`(callq ,label)
       (format
         "\tcallq\t~a"
-        (if (set-member? builtin-funs label)
+        (if (set-member? builtin-funs-R6 label)
           (label-name label)
           label))]
     [`(label ,label) (format "~a:" label)]
@@ -92,7 +93,7 @@
         (map print-x86 es) ", "
         #:before-first (format "\t~a\t" op))]))
 
-(define (print-x86-R4 e)
+(define (print-x86-R6 e)
   (match e
     [`(define (,label) ,argc
         (,used-callee ,used-stk ,used-rstk)
@@ -107,9 +108,9 @@
         ,instrs ...)
       (string-append
         (string-join
-          (map print-x86-R4 ds) "\n\n")
+          (map print-x86-R6 ds) "\n\n")
         "\n\n"
         (string-join
           (map print-x86 instrs) "\n"
           #:before-first (header 'main used-callee used-stk used-rstk)
-          #:after-last (footer used-callee used-stk used-rstk type)))]))
+          #:after-last (footer used-callee used-stk used-rstk #t)))]))
