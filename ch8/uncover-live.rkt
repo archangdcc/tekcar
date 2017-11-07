@@ -1,11 +1,15 @@
 #lang racket
 
-(provide uncover-live-R4)
+(require "../global.rkt")
+
+(provide uncover-live-R6)
 
 (define (vars arg)
   (match arg
     [`(var ,x) (set x)]
-    [`(reg ,r) (set r)]
+    [`(reg ,r)
+      #:when (not (equal? r temp-reg))
+      (set r)]
     [_ (set)]))
 
 (define (deref arg)
@@ -37,10 +41,10 @@
     [`(movzbq ,x ,y)  ;; x is always (byte-reg al)
       (let ([sy (vars y)])
         (values sy sy (deref y)))]
-    [`(,op ,x)        ;; negq
+    [`(,op ,x)        ;; negq orq
       (let ([sx (vars x)])
         (values sx sx (set-union sx (deref x))))]
-    [`(,op ,x ,y)     ;; addq xorq
+    [`(,op ,x ,y)     ;; addq xorq andq salq sarq
       (let ([sx (vars x)]
             [sy (vars y)])
         (values
@@ -48,20 +52,20 @@
           sy
           (set-union sx sy (deref x) (deref y))))]))
 
-(define (uncover-live-helper live-after instrs)
+(define (uncover-live live-after instrs)
   ;; the car of the result should be ignored
   ;; because it is the live set before first instr
   (if (eq? instrs '()) (values `(,live-after) instrs)
     (let-values
       ([(cdr-live-after cdr-new-instrs)
-        (uncover-live-helper live-after (cdr instrs))])
+        (uncover-live live-after (cdr instrs))])
       (match (car instrs)
         [`(if (,cmp ,x ,y) ,thns ,elss)
          (let-values
            ([(thn-lives thn-instrs)
-             (uncover-live-helper (car cdr-live-after) thns)]
+             (uncover-live (car cdr-live-after) thns)]
             [(els-lives els-instrs)
-             (uncover-live-helper (car cdr-live-after) elss)])
+             (uncover-live (car cdr-live-after) elss)])
            (let ([sx (vars x)]
                  [sy (vars y)])
              (values
@@ -90,14 +94,14 @@
                (car instrs)
                cdr-new-instrs)))]))))
 
-(define (uncover-live-R4 e)
+(define (uncover-live-R6 e)
   (match e
     [`(define (,label) ,argc
         (,vars ,maxstack)
         ,instrs ...)
       (let-values
         ([(live-after new-instrs)
-          (uncover-live-helper (set) instrs)])
+          (uncover-live (set) instrs)])
         `(define (,label) ,argc
            (,vars ,maxstack ,(cdr live-after))
            ,@new-instrs))]
@@ -107,8 +111,8 @@
         ,instrs ...)
       (let-values
         ([(live-after new-instrs)
-          (uncover-live-helper (set) instrs)])
+          (uncover-live (set) instrs)])
         `(program
            (,vars ,maxstack ,(cdr live-after)) ,type
-           (defines ,@(map uncover-live-R4 ds))
+           (defines ,@(map uncover-live-R6 ds))
            ,@new-instrs))]))

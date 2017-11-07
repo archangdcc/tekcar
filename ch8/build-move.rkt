@@ -3,7 +3,7 @@
 (require "../utilities.rkt")
 (require "../global.rkt")
 
-(provide build-move-R4)
+(provide build-move-R6)
 
 (define (build-graph graph instrs nulls)
   (for-each
@@ -15,6 +15,7 @@
             (not (set-member? nulls x))
             (not (set-member? nulls y))
             (not (set-member? nulls y))
+            (not (eq? x temp-reg))
             (not (eq? tagy 'stack-arg))
             (not (eq? tagx 'stack-arg)))
           (add-edge* graph x y)]
@@ -25,7 +26,7 @@
         [_ (void)]))
     instrs))
 
-(define (build-move-R4 p)
+(define (build-move-R6 p)
   (match p
     [`(define (,label) ,argc
         (,vars ,maxstack ,interf ,nulls)
@@ -43,5 +44,5 @@
         (build-graph move instrs nulls)
         `(program
            (,vars ,maxstack ,interf ,move ,nulls) ,type
-           (defines ,@(map build-move-R4 ds))
+           (defines ,@(map build-move-R6 ds))
            ,@instrs))]))

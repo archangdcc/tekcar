@@ -3,7 +3,7 @@
 (require "../utilities.rkt")
 (require "../global.rkt")
 
-(provide build-interference-R4)
+(provide build-interference-R6)
 
 (define (build-graph graph live-after instrs vars)
   (map
@@ -18,6 +18,7 @@
         [`(movq (,tagy ,y) (,tagx ,x))
           #:when
           (and
+            (not (eq? x temp-reg))
             (not (eq? tagy 'int))
             (not (eq? tagy 'stack-arg))
             (not (eq? tagx 'stack-arg)))
@@ -59,7 +60,10 @@
                     all-regs caller-regs))))
             instr)]
         [`(,op ... (,tag ,x))   ;; movzbq is handled here
-          #:when (not (eq? tag 'stack-arg))
+          #:when
+          (and
+            (not (eq? tag 'stack-arg))
+            (not (eq? x temp-reg)))
           (begin
             (set-for-each live
               (lambda (v)
@@ -70,7 +74,7 @@
         [_ instr]))  ;; deref and stack-arg
     live-after instrs))
 
-(define (build-interference-R4 p)
+(define (build-interference-R6 p)
   (match p
     [`(define (,label) ,argc
         (,vars ,maxstack ,live-after ,nulls)
@@ -88,5 +92,5 @@
              [instrs (build-graph graph live-after instrs vars)])
         `(program
            (,vars ,maxstack ,graph ,nulls) ,type
-           (defines ,@(map build-interference-R4 ds))
+           (defines ,@(map build-interference-R6 ds))
            ,@instrs))]))
