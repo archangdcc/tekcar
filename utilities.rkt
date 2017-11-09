@@ -542,11 +542,11 @@
 	              (set! suite-type-fails (+ suite-type-fails 1))
 	              (set! type-fails (+ type-fails 1))
 	              (printf (format "test ~a failed, unexpected type error" test-name)) 
-	              (raise "type-error"))
+	              (error "type-error"))
                     '())
                   (if typechecks
                     (if (system (format "gcc -g -std=c99 runtime.o tests/~a.s" test-name))
-                      (void) (exit))
+                      (void) (error "compile-error"))
                     '())
                   (let* ([input (if (file-exists? (format "tests/~a.in" test-name))
                                   (format " < tests/~a.in" test-name)
@@ -568,7 +568,7 @@
 	                  (set! type-fails (+ type-fails 1))
 	                  (set! suite-type-fails (+ suite-type-fails 1))
 		          (printf (format "test ~a passed typechecking but should not have." test-name))
-		          (raise "type-error"))
+		          (error "type-error"))
                         '())
                       (control-fun 'wait)
                       (cond 
