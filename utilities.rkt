@@ -13,6 +13,8 @@
 	 arg-registers register->color registers align
          byte-reg->full-reg print-by-type)
 
+(require "dynamic-interp.rkt")
+
 ;; debug state is a nonnegative integer.
 ;; The easiest way to increment it is passing the -d option
 ;; to run-tests.rkt
