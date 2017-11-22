@@ -693,6 +693,8 @@
     (lambda (ty index)
       (format "\tmovq\t~a(%r~a), %rax\n~a" (* 8 (+ 1 index)) depth (print-by-type ty (+ 1 depth)))))
   (match ty
+    ['Any 
+     (format "\tmovq\t%rax, %rdi\n\tcallq\t~a\n" (label-name "print_any"))]
     ['Void (format "\tcallq\t~a\n" (label-name "print_void"))]
     ['Integer 
      (format "\tmovq\t%rax, %rdi\n\tcallq\t~a\n" (label-name "print_int"))]
