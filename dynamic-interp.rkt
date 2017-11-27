@@ -10,7 +10,7 @@
 
 (define valid-op?
   (lambda (op)
-    (member op '(+ - and or not < > <= >=))))
+    (member op '(+ - and or not))))
 
 (define interp-r7-op
   (lambda (op es)
@@ -19,14 +19,6 @@
        `(tagged ,(fx+ v1 v2) Integer)]
       [`(- ((tagged ,v Integer)))
        `(tagged ,(fx- 0 v) Integer)]
-      [`(> ((tagged ,v1 Integer) (tagged ,v2 Integer)))
-       `(tagged ,(> v1 v2) Boolean)]
-      [`(< ((tagged ,v1 Integer) (tagged ,v2 Integer)))
-       `(tagged ,(< v1 v2) Boolean)]
-      [`(>= ((tagged ,v1 Integer) (tagged ,v2 Integer)))
-       `(tagged ,(>= v1 v2) Boolean)]
-      [`(< ((tagged ,v1 Integer) (tagged ,v2 Integer)))
-       `(tagged ,(<= v1 v2) Boolean)]
       [`(and (,v1 ,v2))
        (match v1
          [`(tagged #f Boolean) v1]
@@ -69,18 +61,19 @@
        (let* ([elts (map recur es)]
               [tys (map get-tagged-type elts)])
          `(tagged ,(apply vector (map recur es)) (Vector ,@tys)))]
-      [`(vector-set! ,e1 ,n ,e2)
-       (let ([e1^ (recur e1)]
-             [e2^ (recur e2)])
-         (match e1^ 
-           [`(tagged ,vec ,ty) 
-            (vector-set! vec n e2^)
-            `(tagged (void) Void)]))]
-      [`(vector-ref ,e ,n)
-       (let ([e^ (recur e)])
-         (match e^ 
-           [`(tagged ,vec ,ty) 
-            (vector-ref vec n)]))]
+      [`(vector-set! ,(app recur e1^) ,(app recur n^) ,(app recur e2^))
+       (match e1^ 
+	 [`(tagged ,vec ,ty) 
+	  (match n^
+	    [`(tagged ,n ,ty)
+	     (vector-set! vec n e2^)
+	     `(tagged (void) Void)])])]
+      [`(vector-ref ,(app recur e^) ,(app recur n^))
+       (match e^ 
+	 [`(tagged ,vec ,ty) 
+	  (match n^
+	    [`(tagged ,n ,ty)
+	     (vector-ref vec n)])])]
       [`(let ([,x ,e]) ,body)
        (let ([v (recur e)])
          ((interp-r7 (cons (cons x v) env)) body))]
