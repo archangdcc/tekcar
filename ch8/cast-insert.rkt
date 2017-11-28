@@ -30,18 +30,6 @@
           `(program
              ,@(map (cast fns) ds)
              ,e))]
-            ; (let ([ans ,e])
-            ;   (if (boolean? ans)
-            ;     (project ans Boolean)
-            ;   (if (integer? ans)
-            ;     (project ans Integer)
-            ;   (if (vector? ans)
-            ;     (project ans (Vectorof Any))
-            ;   (if (void? ans)
-            ;     (project ans Void)
-            ;   (if (procedure? ans)
-            ;     (project ans (Any -> Any))
-            ;     ))))))))]
       [`(define (,fn ,vars ...) ,e)
        `(define (,fn ,@(map append-any vars))
           : Any ,((cast fns) e))]

@@ -12,7 +12,8 @@
          callee-regs caller-regs all-regs arg-regs
          caller-num reg-num arg-num
          color->reg reg->color
-         cc ncc R4-ops heap-size rstk-size add-edge*
+         cc ncc heap-size rstk-size add-edge*
+         R4-ops R6-ops
          builtin-funs builtin-funs-R6)
 
 (define (remove-bad-symbol y)
@@ -153,6 +154,12 @@
   (set 'eq? '< '> '<= '>= '- '+
        'and 'not 'if 'read 'void
        'vector 'vector-ref 'vector-set!))
+
+(define R6-ops
+  (set 'eq? '< '> '<= '>= '- '+
+       'and 'not 'if 'read 'void
+       'vector 'vector-ref 'vector-set!
+       'boolean? 'integer? 'void? 'vector? 'procedure?))
 
 (define rstk-size 16384)
 (define heap-size 16)

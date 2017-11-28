@@ -80,6 +80,7 @@
 (provide r3-passes)
 (provide r4-passes)
 (provide r5-passes)
+(provide r6-passes)
 (provide r7-passes)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
@@ -203,11 +204,8 @@
      ("print-x86" ,print-x86-R4 #f)
      ))
 
-(define r7-passes
-  `( ("cast-insert" ,cast-insert ,interp-scheme)
-     ("eliminate-trivial" ,eliminate-trivial ,interp-scheme)
-     ("typecheck" ,typecheck-R6 ,interp-scheme)
-     ("uniquify" ,uniquify-R6 ,interp-scheme)
+(define r6-passes
+  `( ("uniquify" ,uniquify-R6 ,interp-scheme)
      ("reveal-functions" ,reveal-functions-R6 ,interp-F)
      ("convert-to-closures" ,convert-to-closures ,interp-F)
      ("expose-alloction" ,expose-allocation-R4 ,interp-F)
@@ -222,3 +220,9 @@
      ("patch-instructions" ,patch-instructions-R4 ,interp-x86)
      ("print-x86" ,print-x86-R6 #f)
      ))
+
+(define r7-passes
+  `( ("cast-insert" ,cast-insert ,interp-scheme)
+     ("eliminate-trivial" ,eliminate-trivial ,interp-scheme)
+     ("typecheck" ,typecheck-R6 ,interp-scheme)
+     ,@r6-passes))

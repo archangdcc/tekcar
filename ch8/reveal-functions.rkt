@@ -38,7 +38,7 @@
       [`(project ,e ,t)
         `(project ,((reveal-functions fns) e) ,t)]
       [`(,op ,es ...)
-        #:when (set-member? R4-ops op)
+        #:when (set-member? R6-ops op)
         `(,op ,@(map (reveal-functions fns) es))]
       [`(,es ...)
        `(app ,@(map (reveal-functions fns) es))])))

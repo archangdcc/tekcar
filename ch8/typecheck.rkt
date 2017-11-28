@@ -56,16 +56,48 @@
       [`(vector ,(app (typecheck env) e* t*) ...)
         (let ([t `(Vector ,@t*)])
           (has-type `(vector ,@e*) t))]
-      [`(vector-ref ,(app (typecheck env) ve vt) ,(app (typecheck env) ie it))
+      [`(vector-ref ,(app (typecheck env) ve vt) ,i)
+        #:when (integer? i)
         (match vt
-          [`(Vectorof ,t)
-            (has-type `(vector-ref ,ve ,ie) t)]
+          [`(Vectorof Any)
+            (has-type `(vector-ref ,ve (has-type ,i Integer)) 'Any)]
+          [`(Vector ,ts ...)
+            (unless (and (exact-nonnegative-integer? i)
+                         (i . < . (length ts)))
+              (error 'typecheck "invalid index ~a" i))
+            (let ([t (list-ref ts i)])
+              (has-type `(vector-ref ,ve (has-type ,i Integer)) t))]
           [else (error "expected a vector in vector-ref, not" vt)])]
+      [`(vector-ref ,(app (typecheck env) ve vt) ,(app (typecheck env) ie it))
+        (unless (equal? it 'Integer)
+          (error 'typecheck "expected an integer in vector-ref, not" it))
+        (match vt
+          [`(Vectorof Any)
+            (has-type `(vector-ref ,ve ,ie) 'Any)]
+          [else (error "expected a vector in vector-ref, not" vt)])]
+      [`(vector-set! ,(app (typecheck env) e-vec t-vec) ,i
+                     ,(app (typecheck env) e-arg t-arg))
+        #:when (integer? i)
+        (match t-vec
+          [`(Vector ,ts ...)
+            (unless (and (exact-nonnegative-integer? i)
+                         (i . < . (length ts)))
+              (error 'typecheck "invalid index ~a" i))
+            (unless (equal? (list-ref ts i) t-arg)
+              (error 'typecheck "type mismatch in vector-set! ~a ~a"
+                     (list-ref ts i) t-arg))
+            (has-type `(vector-set! ,e-vec (has-type ,i Integer) ,e-arg) 'Void)]
+          [`(Vectorof Any)
+            (has-type `(vector-set! ,e-vec (has-type ,i Integer) ,e-arg) 'Void)]
+          [else (error 'typecheck
+                       "expected a vector in vector-set!, not ~a" t-vec)])]
       [`(vector-set! ,(app (typecheck env) e-vec t-vec)
                      ,(app (typecheck env) e-idx t-idx)
                      ,(app (typecheck env) e-arg t-arg))
+        (unless (equal? t-idx 'Integer)
+          (error 'typecheck "expected an integer in vector-set!, not" t-idx))
         (match t-vec
-          [`(Vectorof ,t)
+          [`(Vectorof Any)
             (has-type `(vector-set! ,e-vec ,e-idx ,e-arg) 'Void)]
           [else (error 'typecheck
                        "expected a vector in vector-set!, not ~a" t-vec)])]
@@ -74,8 +106,12 @@
         (match* (t1 t2)
           [(`(Vector ,ts1 ...) `(Vector ,ts2 ...))
            (has-type `(eq? ,e1 ,e2) 'Boolean)]
+          [(`(Vectorof Any) `(Vector ,ts ...))
+           (has-type `(eq? ,e1 ,e2) 'Boolean)]
+          [(`(Vector ,ts ...) `(Vectorof Any))
+           (has-type `(eq? ,e1 ,e2) 'Boolean)]
           [(other wise)
-           (if (eq? t1 t2)
+           (if (equal? t1 t2)
              (has-type `(eq? ,e1 ,e2) 'Boolean)
              (error 'typecheck "'eq?' arg types not matching in ~s" e))])]
       [`(let ([,x ,(app (typecheck env) e₁ t₁)]) ,body)
@@ -96,7 +132,7 @@
           [else (error 'typecheck "'-' expects an Integer in ~s" e)])]
       [`(not ,(app (typecheck env) e₀ t₀))
         (match t₀
-          ['Boolean (has-type `(- ,e₀) 'Boolean)]
+          ['Boolean (has-type `(not ,e₀) 'Boolean)]
           [else (error 'typecheck "'not' expects a Boolean in ~s" e)])]
       [`(if ,(app (typecheck env) e* t*) ...)
         (match t*
@@ -113,10 +149,15 @@
         (match t*
           ['(Boolean Boolean) (has-type `(and ,@e*) 'Boolean)]
           [else (error 'typecheck "'and' expects two Booleans in ~s" e)])]
+      [`(,test ,(app (typecheck env) e* t*))
+        #:when (set-member? (set 'boolean? 'integer? 'void? 'vector? 'procedure?) test)
+        (match t*
+          ['Any (has-type `(,test ,e*) 'Boolean)]
+          [else (error 'typecheck (~a "'" test "' expects Any in ~s" e))])]
       [`(,cmp ,(app (typecheck env) e* t*) ...)
         #:when (set-member? (set '< '> '<= '>=) cmp)
         (match t*
-          ['(Integer Integer) (has-type `(and ,@e*) 'Boolean)]
+          ['(Integer Integer) (has-type `(,cmp ,@e*) 'Boolean)]
           [else (error 'typecheck (~a "'" cmp "' expects two Integers in ~s" e))])]
       [`(,(app (typecheck env) f tf) ,(app (typecheck env) e* t*) ...)
         (match tf

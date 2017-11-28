@@ -26,6 +26,14 @@
     (arithmetic-shift n 1)
     1))
 
+(define (test->type test)
+  (match test
+    ['boolean? 'Boolean]
+    ['integer? 'Integer]
+    ['void? 'Void]
+    ['vector? '(Vector Any)]
+    ['procedure? '(Any -> Any)]))
+
 (define (anytag t)
   (match t
     ['Integer 1]
@@ -98,6 +106,14 @@
            ((movq (int #xfffffffffffffff8) (var ,lhs))
             (andq ,(select-arg v) (var ,lhs)))
            ((callq exit@plt))) .
+         ,tail)]
+      [`(assign ,lhs (,test ,v))
+        #:when (set-member? (set 'boolean? 'integer? 'void? 'vector? 'procedure?) test)
+       `((movq ,(select-arg v) (var ,lhs))
+         (andq (int 7) (var ,lhs))
+         (if (eq? (var ,lhs) (int ,(anytag (test->type test))))
+           ((movq (int 1) (var ,lhs)))
+           ((movq (int 0) (var ,lhs)))) .
          ,tail)]
       [`(assign ,lhs (void))
        `((movq (int 0) (var ,lhs)) .

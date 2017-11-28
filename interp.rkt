@@ -2,7 +2,7 @@
 (require racket/fixnum)
 (require "utilities.rkt" (prefix-in runtime-config: "runtime-config.rkt"))
 (provide interp-scheme interp-C interp-x86 interp-R0 interp-R1 interp-R2 interp-R3
-     interp-R4 interp-R6 interp-r7)
+     interp-R4 interp-R6 interp-F interp-r7)
 
 (define interp-scheme
   (lambda (p)

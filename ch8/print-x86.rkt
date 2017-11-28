@@ -40,13 +40,12 @@
         "")
       "\n")))
 
-(define (footer used-callee used-stk used-rstk main?)
+(define (footer used-callee used-stk used-rstk type)
   (string-append
     "\n\n"
-    (if main?
+    (if type
       (string-append
-        "\tmovq\t%rax, %rdi\n"
-        "\tcallq\t" (label-name "print_any") "\n"
+        (print-by-type (cadr type)) "\n"
         "\tmovq\t$0, %rax\n")
       "")
     (if (zero? used-rstk)
@@ -114,4 +113,4 @@
         (string-join
           (map print-x86 instrs) "\n"
           #:before-first (header 'main used-callee used-stk used-rstk)
-          #:after-last (footer used-callee used-stk used-rstk #t)))]))
+          #:after-last (footer used-callee used-stk used-rstk type)))]))
