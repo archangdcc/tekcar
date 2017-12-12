@@ -166,8 +166,7 @@
             (if (equal? ta t*)
               (has-type `(,f ,@e*) tf)
               (error 'typecheck "arguments expect ~s not ~s in ~s" ta t* e))]
-          ['Any (has-type `(,f ,@e*) 'Any)]
-          [_ (printf "aaa~n~a~naaaaa" tf)(error 'typecheck "expects a function in ~s" e)])]
+          [_ (error 'typecheck "expects a function in ~s" e)])]
       )))
 
 (define (typecheck-R6 p)

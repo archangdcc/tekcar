@@ -64,6 +64,7 @@
 (require "ch8/typecheck.rkt")
 (require "ch8/uniquify.rkt")
 (require "ch8/reveal-functions.rkt")
+(require "ch8/convert-to-closures.rkt")
 (require "ch8/flatten.rkt")
 (require "ch8/select-instructions.rkt")
 (require "ch8/uncover-live.rkt")
@@ -211,7 +212,7 @@
 (define r6-passes
   `( ("uniquify" ,uniquify-R6 ,interp-scheme)
      ("reveal-functions" ,reveal-functions-R6 ,interp-F)
-     ("convert-to-closures" ,convert-to-closures ,interp-F)
+     ("convert-to-closures" ,convert-to-closures-R6 ,interp-F)
      ("expose-alloction" ,expose-allocation-R4 ,interp-F)
      ("flatten" ,flatten-R6 ,interp-C)
      ("select-instructions" ,select-instructions-R6 ,interp-x86)

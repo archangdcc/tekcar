@@ -117,9 +117,9 @@
 ;(display "\e[0;34;42mdynamic type passed!\e[0m") (newline)
 
 ;(debug-level 2)
-;(interp-tests "dynamic type" #f r8-passes (lambda (e) 42) "r8" (range 1 2))
+;(interp-tests "dynamic type" #f r8-passes (lambda (e) '(tagged 42 Integer)) "r8" (range 1 2))
 (debug-level 0)
 (compiler-tests "dynamic type" #f r8-passes "r7" (range 1 22))
-(compiler-tests "dynamic type" #f r8-passes "r8" (range 1 2))
+(compiler-tests "dynamic type" #f r8-passes "r8" (range 1 3))
 (newline)
 (display "\e[0;34;42mdynamic type: compile tests passed!\e[0m") (newline)

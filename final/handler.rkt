@@ -11,21 +11,25 @@
       [(? fixnum?) e]
       [(? symbol?) e]
       [`(with-handlers ([,test ,h]) ,b)
-        (let ([cc (gen-sym 'cc)])
-        `(call/cc
-           (lambda (,cc)
-             (let ([,handler (lambda (e) (if (,test e) (,cc (,h e)) (,handler e)))])
-               ,((htc handler) b)))))]
+        (let* ([handler* (gen-sym 'handler)]
+               [cc (gen-sym 'cc)]
+               [ex (gen-sym 'ex)]
+               )
+          `(call/cc
+             (lambda (,cc)
+               (let ([,handler* (lambda (,ex) (if (,test ,ex) (,cc (,h ,ex)) (,handler ,ex)))])
+                 ,((htc handler*) b)))))]
       [`(raise ,e)
         `(,handler ,e)]
       [`(define (,fn ,args ...) ,e)
        `(define (,fn ,@args) ,((htc handler) e))]
       [`(program ,ds ... ,e)
-       `(program
-          (define (,handler e)
-            (void))
-          ,@(map (htc handler) ds)
-          ,((htc handler) e))]
+        (let ([ex (gen-sym 'ex)])
+          `(program
+             (define (,handler ,ex)
+               ,ex)
+             ,@(map (htc handler) ds)
+             ,((htc handler) e)))]
       [`(lambda ,args ,e)
        `(lambda (,@args)
           ,((htc handler) e))]

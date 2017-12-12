@@ -124,6 +124,7 @@ void initialize(uint64_t rootstack_size, uint64_t heap_size)
 
 void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
 {
+
 #if 0
   printf("collecting, need %ld\n", bytes_requested);
   print_heap(rootstack_ptr);
@@ -136,16 +137,14 @@ void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
 
 #ifndef NDEBUG
   // All pointers in the rootstack point to fromspace
-/*  for (unsigned int i = 0; rootstack_begin + i < rootstack_ptr; i++){
+  for (unsigned int i = 0; rootstack_begin + i < rootstack_ptr; i++){
     int64_t* root = rootstack_begin[i];
     if (is_ptr(root)) {
       int64_t* a_root = to_ptr(root);
-      printf("fromspace_end: %lx\n", (int64_t)fromspace_begin);
-      printf("a_root       : %lx\n", (int64_t)a_root);
       assert(fromspace_begin <= a_root);
       assert(a_root < fromspace_end);
     }
-  }*/
+  }
 #endif
 
   // 2. Perform collection
