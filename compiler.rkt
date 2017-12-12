@@ -72,6 +72,9 @@
 (require "ch8/allocate-registers.rkt")
 (require "ch8/print-x86.rkt")
 
+(require "final/handler.rkt")
+(require "final/convert-to-cps.rkt")
+
 ;; This exports r0-passes, defined below, to users of this file.
 (provide r0-passes)
 (provide r1-passes)
@@ -82,6 +85,7 @@
 (provide r5-passes)
 (provide r6-passes)
 (provide r7-passes)
+(provide r8-passes)
 
 ;; The following pass is just a silly pass that doesn't change anything important,
 ;; but is nevertheless an example of a pass. It flips the arguments of +. -Jeremy
@@ -226,3 +230,8 @@
      ("eliminate-trivial" ,eliminate-trivial ,interp-scheme)
      ("typecheck" ,typecheck-R6 ,interp-scheme)
      ,@r6-passes))
+
+(define r8-passes
+  `( ("handler-to-callcc" ,handler-to-callcc #f)
+     ("covert-to-cps" ,convert-to-cps #f)
+     ,@r7-passes))
