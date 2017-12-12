@@ -1,19 +1,7 @@
-flatten pass optimization:
+features:
 
--- opt#1 commit:7866697f4577368c074a4f1bb0070f30ca790d3c
+with-handlers & raise : final/handler.rkt
+call/cc : final/convert-to-cps.rkt
 
-(program
-  (let
-    ((g10230 (+ 21 21)))
-    g10230))
-
-opt:
-(program (g10230)
-  (assign g10230 (+ 21 21))
-  (return g10230))
-
-unopt:
-(program (g10229 g10230)
-  (assign g10229 (+ 21 21))
-  (assign g10230 g10229)
-  (return g10230))
+test: just run run-test.rkt, there is a new passes named r8-passes
+and new test files r8_*.rkt

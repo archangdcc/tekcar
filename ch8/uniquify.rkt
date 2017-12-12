@@ -49,5 +49,4 @@
 
 (define (uniquify-R6 e)
   (begin
-    (init-sym)
     ((uniq '()) e)))

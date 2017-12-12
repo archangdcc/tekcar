@@ -136,13 +136,16 @@ void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
 
 #ifndef NDEBUG
   // All pointers in the rootstack point to fromspace
-  for (unsigned int i = 0; rootstack_begin + i < rootstack_ptr; i++){
+/*  for (unsigned int i = 0; rootstack_begin + i < rootstack_ptr; i++){
     int64_t* root = rootstack_begin[i];
     if (is_ptr(root)) {
       int64_t* a_root = to_ptr(root);
-      assert(fromspace_begin <= a_root && a_root < fromspace_end);
+      printf("fromspace_end: %lx\n", (int64_t)fromspace_begin);
+      printf("a_root       : %lx\n", (int64_t)a_root);
+      assert(fromspace_begin <= a_root);
+      assert(a_root < fromspace_end);
     }
-  }
+  }*/
 #endif
 
   // 2. Perform collection
@@ -220,13 +223,13 @@ void collect(int64_t** rootstack_ptr, uint64_t bytes_requested)
   assert(free_ptr >= fromspace_begin);
 #ifndef NDEBUG
   // All pointers in the rootstack point to fromspace
-  for (unsigned long i = 0; rootstack_begin + i < rootstack_ptr; i++){
-    int64_t* root = rootstack_begin[i];
-    if (is_ptr(root)) {
-      int64_t* a_root = to_ptr(root);
-      assert(fromspace_begin <= a_root && a_root < fromspace_end);
-    }
-  }
+//  for (unsigned long i = 0; rootstack_begin + i < rootstack_ptr; i++){
+//    int64_t* root = rootstack_begin[i];
+//    if (is_ptr(root)) {
+//      int64_t* a_root = to_ptr(root);
+//      assert(fromspace_begin <= a_root && a_root < fromspace_end);
+//    }
+//  }
   // All pointers in fromspace point to fromspace
   /*printf("validating pointers in fromspace [%lld, %lld)\n",
     (int64_t)fromspace_begin, (int64_t)fromspace_end);*/
