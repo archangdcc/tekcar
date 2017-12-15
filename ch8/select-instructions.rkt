@@ -190,6 +190,11 @@
         `((callq read_int)
           (movq (reg ,return-reg) (var ,lhs)) .
           ,tail)]
+      [`(assign ,lhs (print ,x))
+        `((movq ,(select-arg x) (reg rdi))
+          (callq print_int)
+          (movq (reg ,return-reg) (var ,lhs)) .
+          ,tail)]
       [`(assign ,x (not ,x))
         `((xorq (int 1) (var ,x)) .
           ,tail)]

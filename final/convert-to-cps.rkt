@@ -85,7 +85,7 @@
           ((ctx-push ctx* args) '()))]
       [`(,op ,args ...)
         #:when (set-member?
-                 (set 'void 'read 'and 'not '+ '-
+                 (set 'void 'read 'and 'not '+ '- 'print
                       'eq? '< '> '<= '>= 'vector-ref) op)
         (let ([ctx* (lambda (vs) (ctx `(,op . ,vs)))])
           ((ctx-push ctx* args) '()))]

@@ -152,12 +152,12 @@
 
 (define R4-ops
   (set 'eq? '< '> '<= '>= '- '+
-       'and 'not 'if 'read 'void
+       'and 'not 'if 'read 'void 'print
        'vector 'vector-ref 'vector-set!))
 
 (define R6-ops
   (set 'eq? '< '> '<= '>= '- '+
-       'and 'not 'if 'read 'void
+       'and 'not 'if 'read 'void 'print
        'vector 'vector-ref 'vector-set!
        'boolean? 'integer? 'void? 'vector? 'procedure?))
 
@@ -179,7 +179,7 @@
     [else (add-edge graph x y)]))
 
 (define builtin-funs
-  (set 'malloc 'alloc 'collect 'initialize 'read_int))
+  (set 'malloc 'alloc 'collect 'initialize 'read_int 'print_int))
 
 (define builtin-funs-R6
-  (set 'malloc 'alloc 'collect 'initialize 'read_int 'exit@plt))
+  (set 'malloc 'alloc 'collect 'initialize 'read_int 'exit@plt 'print_int))

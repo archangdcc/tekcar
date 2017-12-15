@@ -142,6 +142,10 @@
             (if (equal? thenT elseT)
               (has-type `(if ,@e*) thenT)
               (error 'typecheck "'if' clause types not matching in ~s" e))])]
+      [`(print ,(app (typecheck env) e* t*))
+        (match t*
+          ['Integer (has-type `(print ,e*) 'Integer)]
+          [else (error 'typecheck "'print' expects one Integer in ~s" e)])]
       [`(+ ,(app (typecheck env) e* t*) ...)
         (match t*
           ['(Integer Integer) (has-type `(+ ,@e*) 'Integer)]
