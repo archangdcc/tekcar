@@ -17,7 +17,11 @@
                )
           `(call/cc
              (lambda (,cc)
-               (let ([,handler* (lambda (,ex) (if (,test ,ex) (,cc (,h ,ex)) (,handler ,ex)))])
+               (let ([,handler*
+                       (lambda (,ex)
+                         (if (,((htc handler) test) ,ex)
+                           (,cc (,((htc handler) h) ,ex))
+                           (,handler ,ex)))])
                  ,((htc handler*) b)))))]
       [`(raise ,e)
         `(,handler ,e)]
