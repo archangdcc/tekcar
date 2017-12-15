@@ -144,7 +144,7 @@
               (error 'typecheck "'if' clause types not matching in ~s" e))])]
       [`(print ,(app (typecheck env) e* t*))
         (match t*
-          ['Integer (has-type `(print ,e*) 'Integer)]
+          ['Integer (has-type `(print ,e*) 'Void)]
           [else (error 'typecheck "'print' expects one Integer in ~s" e)])]
       [`(+ ,(app (typecheck env) e* t*) ...)
         (match t*

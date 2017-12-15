@@ -42,7 +42,7 @@
        `(let ([,v ,((cast fns) e)]) ,((cast fns) b))]
       [`(read) `(inject (read) Integer)]
       [`(void) `(inject (void) Void)]
-      [`(print ,n) `(inject (print (project ,((cast fns) e) Integer)) Void)]
+      [`(print ,n) `(inject (print (project ,((cast fns) n) Integer)) Void)]
       [`(vector ,es ...)
        `(inject
           (vector ,@(map (cast fns) es))
