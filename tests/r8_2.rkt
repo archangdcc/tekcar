@@ -1,4 +1,1 @@
-(+ 1
-   (with-handlers
-     ([(lambda (e) (eq? e 2)) (lambda (e) 41)])
-     (+ 1 (raise 2))))
+(+ 1 (call/cc (lambda (k) (+ 1 (call/cc (lambda (h) (k 41)))))))
